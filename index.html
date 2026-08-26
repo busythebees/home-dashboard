@@ -25,9 +25,122 @@
         </section>
 
         <section>
-            <h2>Today</h2>
+            <h2>Tasks</h2>
+
+            <button id="show-add-task">+ Add task</button>
+
+            <form id="task-form" hidden>
+                <div class="card task-form">
+
+                    <label>
+                        Task
+                        <input
+                            id="task-name"
+                            type="text"
+                            required
+                            placeholder="e.g. Clean bathroom"
+                        >
+                    </label>
+
+                    <label>
+                        Type
+                        <select id="task-type">
+                            <option value="one-off">One-off</option>
+                            <option value="recurring">Recurring</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Estimated duration
+                        <div class="duration-input">
+                            <input
+                                id="task-duration"
+                                type="number"
+                                min="5"
+                                step="5"
+                                value="30"
+                                required
+                            >
+                            <span>minutes</span>
+                        </div>
+                    </label>
+
+                    <label>
+                        Due date
+                        <input id="task-due" type="date">
+                    </label>
+
+                    <div id="recurring-options" hidden>
+
+                        <label>
+                            Ideally every
+                            <div class="duration-input">
+                                <input
+                                    id="task-interval"
+                                    type="number"
+                                    min="1"
+                                    value="7"
+                                >
+                                <span>days</span>
+                            </div>
+                        </label>
+
+                        <label>
+                            Can be done this many days early
+                            <input
+                                id="task-early"
+                                type="number"
+                                min="0"
+                                value="1"
+                            >
+                        </label>
+
+                        <label>
+                            Can be done this many days late
+                            <input
+                                id="task-late"
+                                type="number"
+                                min="0"
+                                value="2"
+                            >
+                        </label>
+
+                    </div>
+
+                    <label>
+                        Scheduling
+                        <select id="task-flexibility">
+                            <option value="flexible">
+                                Flexible
+                            </option>
+                            <option value="fixed">
+                                Fixed
+                            </option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Notes
+                        <textarea
+                            id="task-notes"
+                            rows="3"
+                        ></textarea>
+                    </label>
+
+                    <div class="form-buttons">
+                        <button type="submit">Save task</button>
+                        <button
+                            type="button"
+                            id="cancel-task"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+
+                </div>
+            </form>
+
             <div id="task-list"></div>
-            <button id="add-task">Add test task</button>
         </section>
 
         <section>
@@ -45,6 +158,6 @@
         </section>
     </main>
 
-    <script src="script-v6.js"></script>
+    <script src="script-v7.js"></script>
 </body>
 </html>
