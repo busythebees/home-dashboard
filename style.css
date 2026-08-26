@@ -117,3 +117,27 @@ button {
     color: #aaa;
     font-size: 0.85rem;
 }
+
+.dormant-section {
+    margin-top: 20px;
+}
+
+.dormant-section summary {
+    cursor: pointer;
+    color: #aaa;
+    padding: 10px 0;
+}
+
+.dormant-list {
+    margin-top: 10px;
+}
+
+.task-dormant {
+    opacity: 0.55;
+}
+
+.task-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
