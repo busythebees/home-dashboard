@@ -68,3 +68,51 @@ document.getElementById("add-task").addEventListener("click", () => {
 });
 
 renderTasks();
+
+const CLIENT_ID = "83999734852-n2f55is3a10tj1771grm8oeq2oltvj4p.apps.googleusercontent.com";
+
+let tokenClient;
+
+function setupGoogle() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: "https://www.googleapis.com/auth/calendar.readonly",
+
+        callback: response => {
+            if (response.error) {
+                console.error(response);
+                return;
+            }
+
+            loadCalendar(response.access_token);
+        }
+    });
+}
+
+document.getElementById("connect-google")
+    .addEventListener("click", () => {
+        tokenClient.requestAccessToken();
+    });
+
+async function loadCalendar(token) {
+    const now = new Date().toISOString();
+
+    const url =
+        "https://www.googleapis.com/calendar/v3/calendars/primary/events" +
+        "?singleEvents=true" +
+        "&orderBy=startTime" +
+        "&timeMin=" + encodeURIComponent(now) +
+        "&maxResults=10";
+
+    const response = await fetch(url, {
+        headers: {
+            Authorization: "Bearer " + token
+        }
+    });
+
+    const data = await response.json();
+
+    console.log(data);
+}
+
+window.addEventListener("load", setupGoogle);

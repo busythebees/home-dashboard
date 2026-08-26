@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#111111">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
@@ -32,8 +33,15 @@
 
         <section>
             <h2>Upcoming</h2>
-            <div class="card">
-                <p>Google Calendar not connected</p>
+        
+            <button id="connect-google">
+                Connect Google Calendar
+            </button>
+        
+            <div id="calendar-events">
+                <div class="card">
+                    <p>Google Calendar not connected</p>
+                </div>
             </div>
         </section>
     </main>
