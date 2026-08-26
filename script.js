@@ -79,13 +79,20 @@ function setupGoogle() {
         scope: "https://www.googleapis.com/auth/calendar.readonly",
 
         callback: response => {
+            const container = document.getElementById("calendar-events");
+        
             if (response.error) {
+                container.innerHTML =
+                    `<div class="card"><p>Google error: ${response.error}</p></div>`;
                 console.error(response);
                 return;
             }
-
+        
+            container.innerHTML =
+                '<div class="card"><p>Google connected. Loading calendar...</p></div>';
+        
             loadCalendar(response.access_token);
-        }
+        }        
     });
 }
 
@@ -95,50 +102,48 @@ document.getElementById("connect-google")
     });
 
 async function loadCalendar(token) {
-    const now = new Date().toISOString();
+    const container = document.getElementById("calendar-events");
 
-    const url =
-        "https://www.googleapis.com/calendar/v3/calendars/primary/events" +
-        "?singleEvents=true" +
-        "&orderBy=startTime" +
-        "&timeMin=" + encodeURIComponent(now) +
-        "&maxResults=10";
+    try {
+        const now = new Date().toISOString();
 
-    const response = await fetch(url, {
-        headers: {
-            Authorization: "Bearer " + token
-        }
-    });
+        const url =
+            "https://www.googleapis.com/calendar/v3/calendars/primary/events" +
+            "?singleEvents=true" +
+            "&orderBy=startTime" +
+            "&timeMin=" + encodeURIComponent(now) +
+            "&maxResults=10";
 
-    const data = await response.json();
-
-    const container =
-        document.getElementById("calendar-events");
-
-    if (!data.items || data.items.length === 0) {
-        container.innerHTML =
-            '<div class="card"><p>No upcoming events</p></div>';
-        return;
-    }
-
-    container.innerHTML = data.items.map(event => {
-        const start = event.start.dateTime || event.start.date;
-
-        const when = new Date(start).toLocaleString([], {
-            weekday: "short",
-            day: "numeric",
-            month: "short",
-            hour: event.start.dateTime ? "2-digit" : undefined,
-            minute: event.start.dateTime ? "2-digit" : undefined
+        const response = await fetch(url, {
+            headers: {
+                Authorization: "Bearer " + token
+            }
         });
 
-        return `
+        const data = await response.json();
+
+        if (!response.ok) {
+            container.innerHTML =
+                `<div class="card"><p>Calendar API error: ${response.status}</p><p>${data.error?.message || "Unknown error"}</p></div>`;
+            return;
+        }
+
+        if (!data.items || data.items.length === 0) {
+            container.innerHTML =
+                '<div class="card"><p>Connected — no upcoming events found.</p></div>';
+            return;
+        }
+
+        container.innerHTML = data.items.map(event => `
             <div class="card">
                 <strong>${event.summary || "Untitled event"}</strong>
-                <p>${when}</p>
             </div>
-        `;
-    }).join("");
+        `).join("");
+
+    } catch (error) {
+        container.innerHTML =
+            `<div class="card"><p>JavaScript error: ${error.message}</p></div>`;
+    }
 }
 
 window.addEventListener("load", setupGoogle);
