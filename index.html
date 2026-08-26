@@ -32,6 +32,8 @@
             <form id="task-form" hidden>
                 <div class="card task-form">
 
+                    <h3 id="task-form-title">Add task</h3>
+
                     <label>
                         Task
                         <input
@@ -110,13 +112,53 @@
                     <label>
                         Scheduling
                         <select id="task-flexibility">
-                            <option value="flexible">
-                                Flexible
-                            </option>
-                            <option value="fixed">
-                                Fixed
-                            </option>
+                            <option value="flexible">Flexible</option>
+                            <option value="fixed">Fixed</option>
                         </select>
+                    </label>
+
+                    <label>
+                        Earliest time
+                        <input
+                            id="task-earliest-time"
+                            type="time"
+                            value="09:00"
+                        >
+                    </label>
+
+                    <label>
+                        Latest time
+                        <input
+                            id="task-latest-time"
+                            type="time"
+                            value="20:00"
+                        >
+                    </label>
+
+                    <label class="checkbox-label">
+                        <input
+                            id="task-requires-home"
+                            type="checkbox"
+                        >
+                        Requires me to be home
+                    </label>
+
+                    <label>
+                        Effort
+                        <select id="task-effort">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </label>
+
+                    <label class="checkbox-label">
+                        <input
+                            id="task-avoid-hangover"
+                            type="checkbox"
+                            checked
+                        >
+                        Avoid likely hangover days
                     </label>
 
                     <label>
@@ -128,7 +170,10 @@
                     </label>
 
                     <div class="form-buttons">
-                        <button type="submit">Save task</button>
+                        <button type="submit" id="save-task">
+                            Save task
+                        </button>
+
                         <button
                             type="button"
                             id="cancel-task"
@@ -158,6 +203,6 @@
         </section>
     </main>
 
-    <script src="script-v8.js"></script>
+    <script src="script-v9.js"></script>
 </body>
 </html>
