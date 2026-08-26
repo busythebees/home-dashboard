@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#111111">
+</head>
+
+<body>
+    <main>
+        <header>
+            <div id="time">--:--</div>
+            <div id="date">Loading...</div>
+        </header>
+
+        <section>
+            <h2>Next</h2>
+            <div class="card">
+                <p>No calendar events yet</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Today</h2>
+            <div id="task-list"></div>
+            <button id="add-task">Add test task</button>
+        </section>
+
+        <section>
+            <h2>Upcoming</h2>
+            <div class="card">
+                <p>Google Calendar not connected</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

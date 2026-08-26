@@ -1,0 +1,56 @@
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: #111;
+    color: #eee;
+}
+
+main {
+    max-width: 600px;
+    margin: auto;
+    padding: 24px;
+}
+
+header {
+    margin-bottom: 40px;
+}
+
+#time {
+    font-size: 4rem;
+    font-weight: 700;
+}
+
+#date {
+    font-size: 1.2rem;
+    color: #aaa;
+}
+
+section {
+    margin-bottom: 30px;
+}
+
+h2 {
+    font-size: 1rem;
+    text-transform: uppercase;
+    color: #aaa;
+}
+
+.card {
+    background: #222;
+    padding: 18px;
+    border-radius: 14px;
+}
+
+button {
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 10px;
+    font: inherit;
+}
+
+.task {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
