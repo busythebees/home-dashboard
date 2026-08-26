@@ -114,7 +114,6 @@ if (location.hash.startsWith("#session=")) {
         session
     );
 
-    // Remove the session token from the visible URL
     history.replaceState(
         null,
         "",
@@ -133,6 +132,55 @@ document.getElementById("connect-google")
         location.href =
             API + "/oauth/start";
     });
+
+
+// -------------------------
+// FORMAT CALENDAR EVENT TIME
+// -------------------------
+
+function formatEventTime(event) {
+
+    const start =
+        event.start.dateTime ||
+        event.start.date;
+
+    if (event.start.dateTime) {
+
+        return new Date(start)
+            .toLocaleString(
+                [],
+                {
+                    weekday: "short",
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+    }
+
+    const parts =
+        start.split("-");
+
+    const localDate =
+        new Date(
+            Number(parts[0]),
+            Number(parts[1]) - 1,
+            Number(parts[2])
+        );
+
+    return (
+        localDate.toLocaleDateString(
+            [],
+            {
+                weekday: "short",
+                day: "numeric",
+                month: "short"
+            }
+        ) +
+        " · All day"
+    );
+}
 
 
 // -------------------------
@@ -200,59 +248,40 @@ async function loadCalendar() {
         container.innerHTML =
             data.items.map(event => {
 
-                const start =
-                    event.start.dateTime ||
-                    event.start.date;
+                const when =
+                    formatEventTime(event);
 
-                let when;
+                const calendarColor =
+                    event.calendarColor ||
+                    "#777777";
 
-                if (event.start.dateTime) {
-
-                    when =
-                        new Date(start)
-                            .toLocaleString(
-                                [],
-                                {
-                                    weekday: "short",
-                                    day: "numeric",
-                                    month: "short",
-                                    hour: "2-digit",
-                                    minute: "2-digit"
-                                }
-                            );
-
-                } else {
-
-                    // All-day Google Calendar events
-                    const parts =
-                        start.split("-");
-
-                    const localDate =
-                        new Date(
-                            Number(parts[0]),
-                            Number(parts[1]) - 1,
-                            Number(parts[2])
-                        );
-
-                    when =
-                        localDate.toLocaleDateString(
-                            [],
-                            {
-                                weekday: "short",
-                                day: "numeric",
-                                month: "short"
-                            }
-                        ) + " · All day";
-                }
+                const calendarName =
+                    event.calendarName ||
+                    "Calendar";
 
                 return `
-                    <div class="card">
+                    <div
+                        class="card calendar-card"
+                        style="
+                            border-left:
+                                6px solid ${calendarColor};
+                        "
+                    >
                         <strong>
                             ${event.summary ||
                               "Untitled event"}
                         </strong>
 
                         <p>${when}</p>
+
+                        <small
+                            style="
+                                color:
+                                    ${calendarColor};
+                            "
+                        >
+                            ${calendarName}
+                        </small>
                     </div>
                 `;
 
