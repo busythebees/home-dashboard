@@ -1,3 +1,7 @@
+// -------------------------
+// CLOCK
+// -------------------------
+
 function updateClock() {
     const now = new Date();
 
@@ -17,18 +21,26 @@ function updateClock() {
 
 updateClock();
 setInterval(updateClock, 1000);
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-}
 
-let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+
+// -------------------------
+// TASKS
+// -------------------------
+
+let tasks = JSON.parse(
+    localStorage.getItem("tasks") || "[]"
+);
 
 function saveTasks() {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+    localStorage.setItem(
+        "tasks",
+        JSON.stringify(tasks)
+    );
 }
 
 function renderTasks() {
-    const list = document.getElementById("task-list");
+    const list =
+        document.getElementById("task-list");
 
     if (tasks.length === 0) {
         list.innerHTML = `
@@ -44,6 +56,7 @@ function renderTasks() {
             <div>
                 <strong>${task.name}</strong>
             </div>
+
             <button onclick="completeTask(${task.id})">
                 Done
             </button>
@@ -52,98 +65,227 @@ function renderTasks() {
 }
 
 function completeTask(id) {
-    tasks = tasks.filter(task => task.id !== id);
+    tasks = tasks.filter(
+        task => task.id !== id
+    );
+
     saveTasks();
     renderTasks();
 }
 
-document.getElementById("add-task").addEventListener("click", () => {
-    tasks.push({
-        id: Date.now(),
-        name: "Test task"
-    });
+document.getElementById("add-task")
+    .addEventListener("click", () => {
 
-    saveTasks();
-    renderTasks();
-});
+        tasks.push({
+            id: Date.now(),
+            name: "Test task"
+        });
+
+        saveTasks();
+        renderTasks();
+    });
 
 renderTasks();
 
-const CLIENT_ID = "83999734852-n2f55is3a10tj1771grm8oeq2oltvj4p.apps.googleusercontent.com";
 
-let tokenClient;
+// -------------------------
+// BACKEND
+// -------------------------
 
-function setupGoogle() {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: "https://www.googleapis.com/auth/calendar.readonly",
+const API =
+    "https://home-dashboard-api.busythebees123.workers.dev";
 
-        callback: response => {
-            const container = document.getElementById("calendar-events");
-        
-            if (response.error) {
-                container.innerHTML =
-                    `<div class="card"><p>Google error: ${response.error}</p></div>`;
-                console.error(response);
-                return;
-            }
-        
-            container.innerHTML =
-                '<div class="card"><p>Google connected. Loading calendar...</p></div>';
-        
-            loadCalendar(response.access_token);
-        }        
-    });
+
+// -------------------------
+// SESSION
+// -------------------------
+
+let session =
+    localStorage.getItem("session");
+
+if (location.hash.startsWith("#session=")) {
+
+    session = decodeURIComponent(
+        location.hash.substring(9)
+    );
+
+    localStorage.setItem(
+        "session",
+        session
+    );
+
+    // Remove the session token from the visible URL
+    history.replaceState(
+        null,
+        "",
+        location.pathname
+    );
 }
+
+
+// -------------------------
+// GOOGLE CALENDAR LOGIN
+// -------------------------
 
 document.getElementById("connect-google")
     .addEventListener("click", () => {
-        tokenClient.requestAccessToken();
+
+        location.href =
+            API + "/oauth/start";
     });
 
-async function loadCalendar(token) {
-    const container = document.getElementById("calendar-events");
+
+// -------------------------
+// LOAD GOOGLE CALENDAR
+// -------------------------
+
+async function loadCalendar() {
+
+    if (!session) {
+        return;
+    }
+
+    const container =
+        document.getElementById(
+            "calendar-events"
+        );
+
+    container.innerHTML = `
+        <div class="card">
+            <p>Loading calendar...</p>
+        </div>
+    `;
 
     try {
-        const now = new Date().toISOString();
 
-        const url =
-            "https://www.googleapis.com/calendar/v3/calendars/primary/events" +
-            "?singleEvents=true" +
-            "&orderBy=startTime" +
-            "&timeMin=" + encodeURIComponent(now) +
-            "&maxResults=10";
-
-        const response = await fetch(url, {
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        });
-
-        const data = await response.json();
+        const response =
+            await fetch(
+                API + "/calendar",
+                {
+                    headers: {
+                        Authorization:
+                            "Bearer " + session
+                    }
+                }
+            );
 
         if (!response.ok) {
-            container.innerHTML =
-                `<div class="card"><p>Calendar API error: ${response.status}</p><p>${data.error?.message || "Unknown error"}</p></div>`;
+
+            container.innerHTML = `
+                <div class="card">
+                    <p>
+                        Calendar error:
+                        ${response.status}
+                    </p>
+                </div>
+            `;
+
             return;
         }
 
-        if (!data.items || data.items.length === 0) {
-            container.innerHTML =
-                '<div class="card"><p>Connected — no upcoming events found.</p></div>';
+        const data =
+            await response.json();
+
+        if (!data.items?.length) {
+
+            container.innerHTML = `
+                <div class="card">
+                    <p>No upcoming events.</p>
+                </div>
+            `;
+
             return;
         }
 
-        container.innerHTML = data.items.map(event => `
-            <div class="card">
-                <strong>${event.summary || "Untitled event"}</strong>
-            </div>
-        `).join("");
-
-    } catch (error) {
         container.innerHTML =
-            `<div class="card"><p>JavaScript error: ${error.message}</p></div>`;
+            data.items.map(event => {
+
+                const start =
+                    event.start.dateTime ||
+                    event.start.date;
+
+                let when;
+
+                if (event.start.dateTime) {
+
+                    when =
+                        new Date(start)
+                            .toLocaleString(
+                                [],
+                                {
+                                    weekday: "short",
+                                    day: "numeric",
+                                    month: "short",
+                                    hour: "2-digit",
+                                    minute: "2-digit"
+                                }
+                            );
+
+                } else {
+
+                    // All-day Google Calendar events
+                    const parts =
+                        start.split("-");
+
+                    const localDate =
+                        new Date(
+                            Number(parts[0]),
+                            Number(parts[1]) - 1,
+                            Number(parts[2])
+                        );
+
+                    when =
+                        localDate.toLocaleDateString(
+                            [],
+                            {
+                                weekday: "short",
+                                day: "numeric",
+                                month: "short"
+                            }
+                        ) + " · All day";
+                }
+
+                return `
+                    <div class="card">
+                        <strong>
+                            ${event.summary ||
+                              "Untitled event"}
+                        </strong>
+
+                        <p>${when}</p>
+                    </div>
+                `;
+
+            }).join("");
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        container.innerHTML = `
+            <div class="card">
+                <p>
+                    Calendar failed to load:
+                    ${error.message}
+                </p>
+            </div>
+        `;
     }
 }
 
-window.addEventListener("load", setupGoogle);
+
+// Automatically load Calendar if already authenticated
+loadCalendar();
+
+
+// -------------------------
+// SERVICE WORKER
+// -------------------------
+
+if ("serviceWorker" in navigator) {
+
+    navigator.serviceWorker.register(
+        "service-worker.js"
+    );
+}
