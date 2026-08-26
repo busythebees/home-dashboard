@@ -1,4 +1,4 @@
-const CACHE_NAME = "home-dashboard-v2";
+const CACHE_NAME = "home-dashboard-v3";
 
 const FILES = [
     "./",
@@ -16,9 +16,19 @@ self.addEventListener("install", event => {
 });
 
 self.addEventListener("fetch", event => {
+    const requestUrl = new URL(event.request.url);
+
+    if (
+        requestUrl.protocol !== "http:" &&
+        requestUrl.protocol !== "https:"
+    ) {
+        return;
+    }
+
     event.respondWith(
-        caches.match(event.request)
-            .then(response => response || fetch(event.request))
+        caches.match(event.request).then(cached => {
+            return cached || fetch(event.request);
+        })
     );
 });
 
