@@ -112,7 +112,33 @@ async function loadCalendar(token) {
 
     const data = await response.json();
 
-    console.log(data);
+    const container =
+        document.getElementById("calendar-events");
+
+    if (!data.items || data.items.length === 0) {
+        container.innerHTML =
+            '<div class="card"><p>No upcoming events</p></div>';
+        return;
+    }
+
+    container.innerHTML = data.items.map(event => {
+        const start = event.start.dateTime || event.start.date;
+
+        const when = new Date(start).toLocaleString([], {
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+            hour: event.start.dateTime ? "2-digit" : undefined,
+            minute: event.start.dateTime ? "2-digit" : undefined
+        });
+
+        return `
+            <div class="card">
+                <strong>${event.summary || "Untitled event"}</strong>
+                <p>${when}</p>
+            </div>
+        `;
+    }).join("");
 }
 
 window.addEventListener("load", setupGoogle);
