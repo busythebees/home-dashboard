@@ -642,6 +642,10 @@ async function completeTask(id) {
 
 
     if (task.type === "recurring") {
+
+        task.previousLastCompleted =
+            task.lastCompleted || null;
+
         task.lastCompleted =
             new Date().toISOString();
 
@@ -665,6 +669,56 @@ async function completeTask(id) {
 
         alert(
             "Completion could not be saved."
+        );
+    }
+}
+
+// =========================
+// UNDO COMPLETION
+// =========================
+
+async function undoCompleteTask(id) {
+
+    const task =
+        tasks.find(
+            task => task.id === id
+        );
+
+    if (!task) {
+        return;
+    }
+
+    const oldTasks =
+        JSON.parse(
+            JSON.stringify(tasks)
+        );
+
+    if (task.type === "recurring") {
+
+        task.lastCompleted =
+            task.previousLastCompleted || null;
+
+        task.previousLastCompleted = null;
+
+    } else {
+
+        task.completed = false;
+        task.completedAt = null;
+    }
+
+    try {
+
+        await saveTasks();
+        renderTasks();
+
+    } catch (error) {
+
+        tasks = oldTasks;
+
+        console.error(error);
+
+        alert(
+            "Task could not be restored."
         );
     }
 }
@@ -870,7 +924,13 @@ function taskCard(
 
     const actionButton =
         dormant
-            ? ""
+            ? `
+                <button
+                    onclick="undoCompleteTask('${task.id}')"
+                >
+                    Undo
+                </button>
+            `
             : `
                 <button
                     onclick="completeTask('${task.id}')"
