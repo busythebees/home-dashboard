@@ -920,8 +920,6 @@ function taskCard(
                 >
                     ×
                 </button>
-                    ×
-                </button>
 
             </div>
 
