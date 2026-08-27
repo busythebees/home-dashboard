@@ -1,10 +1,10 @@
-const CACHE_NAME = "home-dashboard-v12";
+const CACHE_NAME = "home-dashboard-v13";
 
 const FILES = [
     "./",
     "./index.html",
     "./style.css",
-    "./script-v12.js",
+    "./script-v13.js",
     "./manifest.json"
 ];
 
