@@ -215,8 +215,109 @@
                 </div>
             </div>
         </section>
+
+        <section>
+            <h2>Scheduler Settings</h2>
+
+            <div class="card task-form">
+
+                <label>
+                    Normal earliest start
+                    <input
+                        id="scheduler-normal-earliest"
+                        type="time"
+                        value="12:00"
+                    >
+                </label>
+
+                <label>
+                    Hangover-day earliest start
+                    <input
+                        id="scheduler-hangover-earliest"
+                        type="time"
+                        value="14:00"
+                    >
+                </label>
+
+                <label>
+                    Preferred finish
+                    <input
+                        id="scheduler-preferred-finish"
+                        type="time"
+                        value="19:00"
+                    >
+                </label>
+
+                <label>
+                    Absolute latest finish
+                    <input
+                        id="scheduler-absolute-finish"
+                        type="time"
+                        value="21:00"
+                    >
+                </label>
+
+                <label class="checkbox-label">
+                    <input
+                        id="scheduler-early-fixed-override"
+                        type="checkbox"
+                        checked
+                    >
+                    Early fixed events override normal start time
+                </label>
+
+                <label>
+                    Lecture travel before
+                    <div class="duration-input">
+                        <input
+                            id="scheduler-lecture-travel-before"
+                            type="number"
+                            min="0"
+                            step="5"
+                            value="40"
+                        >
+                        <span>minutes</span>
+                    </div>
+                </label>
+
+                <label>
+                    Lecture travel after
+                    <div class="duration-input">
+                        <input
+                            id="scheduler-lecture-travel-after"
+                            type="number"
+                            min="0"
+                            step="5"
+                            value="40"
+                        >
+                        <span>minutes</span>
+                    </div>
+                </label>
+
+                <label>
+                    Default transition buffer
+                    <div class="duration-input">
+                        <input
+                            id="scheduler-transition"
+                            type="number"
+                            min="0"
+                            step="5"
+                            value="15"
+                        >
+                        <span>minutes</span>
+                    </div>
+                </label>
+
+                <button id="save-scheduler-settings">
+                    Save scheduler settings
+                </button>
+
+                <p id="scheduler-settings-status"></p>
+
+            </div>
+        </section>
     </main>
 
-    <script src="script-v11.js"></script>
+    <script src="script-v12.js"></script>
 </body>
 </html>
