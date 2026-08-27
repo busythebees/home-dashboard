@@ -1,60 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Home</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#111111">
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <link
+        rel="manifest"
+        href="manifest.json"
+    >
+
+    <meta
+        name="theme-color"
+        content="#111111"
+    >
 </head>
 
+
 <body>
+
     <main>
+
+        <!-- =========================
+             CLOCK
+        ========================== -->
+
         <header>
             <div id="time">--:--</div>
             <div id="date">Loading...</div>
         </header>
 
+
+        <!-- =========================
+             NEXT
+        ========================== -->
+
         <section>
+
             <h2>Next</h2>
+
             <div class="card">
                 <p>No calendar events yet</p>
             </div>
+
         </section>
 
+
+        <!-- =========================
+             TASKS
+        ========================== -->
+
         <section>
+
             <h2>Tasks</h2>
 
-            <button id="show-add-task">+ Add task</button>
+            <button id="show-add-task">
+                + Add task
+            </button>
 
-            <form id="task-form" hidden>
+
+            <!-- ADD / EDIT TASK FORM -->
+
+            <form
+                id="task-form"
+                hidden
+            >
+
                 <div class="card task-form">
 
-                    <h3 id="task-form-title">Add task</h3>
+                    <h3 id="task-form-title">
+                        Add task
+                    </h3>
+
+
+                    <!-- NAME -->
 
                     <label>
+
                         Task
+
                         <input
                             id="task-name"
                             type="text"
                             required
                             placeholder="e.g. Clean bathroom"
                         >
+
                     </label>
 
+
+                    <!-- TYPE -->
+
                     <label>
+
                         Type
+
                         <select id="task-type">
-                            <option value="one-off">One-off</option>
-                            <option value="recurring">Recurring</option>
+
+                            <option value="one-off">
+                                One-off
+                            </option>
+
+                            <option value="recurring">
+                                Recurring
+                            </option>
+
                         </select>
+
                     </label>
 
+
+                    <!-- DURATION -->
+
                     <label>
+
                         Estimated duration
+
                         <div class="duration-input">
+
                             <input
                                 id="task-duration"
                                 type="number"
@@ -63,114 +137,215 @@
                                 value="30"
                                 required
                             >
+
                             <span>minutes</span>
+
                         </div>
+
                     </label>
+
+
+                    <!-- DUE DATE -->
 
                     <label>
+
                         Due date
-                        <input id="task-due" type="date">
+
+                        <input
+                            id="task-due"
+                            type="date"
+                        >
+
                     </label>
 
-                    <div id="recurring-options" hidden>
+
+                    <!-- RECURRING OPTIONS -->
+
+                    <div
+                        id="recurring-options"
+                        hidden
+                    >
 
                         <label>
+
                             Ideally every
+
                             <div class="duration-input">
+
                                 <input
                                     id="task-interval"
                                     type="number"
                                     min="1"
                                     value="7"
                                 >
+
                                 <span>days</span>
+
                             </div>
+
                         </label>
 
+
                         <label>
+
                             Can be done this many days early
+
                             <input
                                 id="task-early"
                                 type="number"
                                 min="0"
                                 value="1"
                             >
+
                         </label>
 
+
                         <label>
+
                             Can be done this many days late
+
                             <input
                                 id="task-late"
                                 type="number"
                                 min="0"
                                 value="2"
                             >
+
                         </label>
 
                     </div>
 
-                    <label>
-                        Scheduling
-                        <select id="task-flexibility">
-                            <option value="flexible">Flexible</option>
-                            <option value="fixed">Fixed</option>
-                        </select>
-                    </label>
+
+                    <!-- FLEXIBILITY -->
 
                     <label>
+
+                        Scheduling
+
+                        <select id="task-flexibility">
+
+                            <option value="flexible">
+                                Flexible
+                            </option>
+
+                            <option value="fixed">
+                                Fixed
+                            </option>
+
+                        </select>
+
+                    </label>
+
+
+                    <!-- EARLIEST TIME -->
+
+                    <label>
+
                         Earliest time
+
                         <input
                             id="task-earliest-time"
                             type="time"
                             value="09:00"
                         >
+
                     </label>
 
+
+                    <!-- LATEST TIME -->
+
                     <label>
+
                         Latest time
+
                         <input
                             id="task-latest-time"
                             type="time"
                             value="20:00"
                         >
+
                     </label>
 
+
+                    <!-- HOME REQUIREMENT -->
+
                     <label class="checkbox-label">
+
                         <input
                             id="task-requires-home"
                             type="checkbox"
                         >
+
                         Requires me to be home
+
                     </label>
+
+
+                    <!-- EFFORT -->
 
                     <label>
+
                         Effort
+
                         <select id="task-effort">
-                            <option value="low">Low</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="high">High</option>
+
+                            <option value="low">
+                                Low
+                            </option>
+
+                            <option
+                                value="medium"
+                                selected
+                            >
+                                Medium
+                            </option>
+
+                            <option value="high">
+                                High
+                            </option>
+
                         </select>
+
                     </label>
 
+
+                    <!-- HANGOVER -->
+
                     <label class="checkbox-label">
+
                         <input
                             id="task-avoid-hangover"
                             type="checkbox"
                             checked
                         >
+
                         Avoid likely hangover days
+
                     </label>
 
+
+                    <!-- NOTES -->
+
                     <label>
+
                         Notes
+
                         <textarea
                             id="task-notes"
                             rows="3"
                         ></textarea>
+
                     </label>
 
+
+                    <!-- FORM BUTTONS -->
+
                     <div class="form-buttons">
-                        <button type="submit" id="save-task">
+
+                        <button
+                            type="submit"
+                            id="save-task"
+                        >
                             Save task
                         </button>
 
@@ -180,29 +355,78 @@
                         >
                             Cancel
                         </button>
+
                     </div>
 
                 </div>
+
             </form>
 
+
+            <!-- TASK LIST -->
+
             <div id="task-list"></div>
+
         </section>
 
+
+        <!-- =========================
+             UPCOMING CALENDAR EVENTS
+        ========================== -->
+
         <section>
+
             <h2>Upcoming</h2>
-        
+
             <button id="connect-google">
                 Connect Google Calendar
             </button>
-        
+
             <div id="calendar-events">
+
                 <div class="card">
-                    <p>Google Calendar not connected</p>
+                    <p>
+                        Google Calendar not connected
+                    </p>
                 </div>
+
             </div>
+
         </section>
+
+
+        <!-- =========================
+             CALENDAR SETTINGS
+        ========================== -->
+
+        <section>
+
+            <h2>Calendar Settings</h2>
+
+            <p class="settings-description">
+                Choose how automatic scheduling should
+                treat each calendar.
+            </p>
+
+            <div id="calendar-settings">
+
+                <div class="card">
+                    <p>Loading calendars...</p>
+                </div>
+
+            </div>
+
+        </section>
+
     </main>
 
+
+    <!-- =========================
+         JAVASCRIPT
+    ========================== -->
+
     <script src="script-v9.js"></script>
+
 </body>
+
 </html>
