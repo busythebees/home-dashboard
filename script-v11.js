@@ -702,16 +702,34 @@ async function deleteTask(id) {
         return;
     }
 
-    if (
-        !confirm(
-            `Delete "${task.name}"?`
-        )
-    ) {
+    const button =
+        document.querySelector(
+            `[data-delete-id="${CSS.escape(id)}"]`
+        );
+
+    if (!button) {
         return;
     }
 
-    const oldTasks =
-        [...tasks];
+    if (
+        button.dataset.confirming !== "true"
+    ) {
+        button.dataset.confirming = "true";
+        button.textContent = "Confirm delete";
+
+        setTimeout(() => {
+            if (
+                button.dataset.confirming === "true"
+            ) {
+                button.dataset.confirming = "false";
+                button.textContent = "×";
+            }
+        }, 5000);
+
+        return;
+    }
+
+    const oldTasks = [...tasks];
 
     tasks =
         tasks.filter(
@@ -896,9 +914,12 @@ function taskCard(
                 </button>
 
                 <button
+                    data-delete-id="${task.id}"
                     onclick="deleteTask('${task.id}')"
                     aria-label="Delete task"
                 >
+                    ×
+                </button>
                     ×
                 </button>
 
