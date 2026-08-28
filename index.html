@@ -117,23 +117,47 @@
                         </select>
                     </label>
 
-                    <label>
-                        Earliest time
-                        <input
-                            id="task-earliest-time"
-                            type="time"
-                            value="09:00"
-                        >
-                    </label>
+                    <div id="task-flexible-options">
 
-                    <label>
-                        Latest time
-                        <input
-                            id="task-latest-time"
-                            type="time"
-                            value="20:00"
-                        >
-                    </label>
+                        <label>
+                            Earliest time
+                            <input
+                                id="task-earliest-time"
+                                type="time"
+                                value="09:00"
+                            >
+                        </label>
+
+                        <label>
+                            Latest time
+                            <input
+                                id="task-latest-time"
+                                type="time"
+                                value="20:00"
+                            >
+                        </label>
+
+                    </div>
+
+                    <div id="task-fixed-options" hidden>
+
+                        <label>
+                            Fixed date
+                            <input
+                                id="task-fixed-date"
+                                type="date"
+                            >
+                        </label>
+
+                        <label>
+                            Start time
+                            <input
+                                id="task-fixed-start-time"
+                                type="time"
+                            >
+                        </label>
+
+                    </div>
 
                     <label class="checkbox-label">
                         <input
@@ -318,6 +342,6 @@
         </section>
     </main>
 
-    <script src="script-v14.js"></script>
+    <script src="script-v15.js"></script>
 </body>
 </html>
