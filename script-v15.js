@@ -59,8 +59,12 @@ if (location.hash.startsWith("#session=")) {
 
 let tasks = [];
 let editingTaskId = null;
+
 let calendarSettings = {};
 let calendarData = [];
+let calendarEvents = [];
+
+let upcomingDaysShown = 2;
 
 
 // =========================
@@ -1513,6 +1517,8 @@ function renderCalendarSettings() {
 
                         await saveCalendarSettings();
 
+                        renderCalendarViews();
+
                     } catch (error) {
 
                         calendarSettings =
@@ -1521,6 +1527,8 @@ function renderCalendarSettings() {
                         console.error(error);
 
                         renderCalendarSettings();
+                        renderCalendarViews();
+                        
 
                         alert(
                             "Calendar setting could not be saved."
@@ -1642,28 +1650,390 @@ function formatEventTime(event) {
     );
 }
 
+// =========================
+// CALENDAR DISPLAY HELPERS
+// =========================
+
+function getCalendarRole(calendarId) {
+
+    const setting =
+        calendarSettings[calendarId];
+
+    if (
+        setting &&
+        typeof setting === "object"
+    ) {
+        return setting.role || "fixed";
+    }
+
+    return setting || "fixed";
+}
+
+
+function isIgnoredCalendarEvent(event) {
+
+    return (
+        getCalendarRole(
+            event.calendarId
+        ) === "ignore"
+    );
+}
+
+
+function localDateKey(date) {
+
+    const year =
+        date.getFullYear();
+
+    const month =
+        String(
+            date.getMonth() + 1
+        ).padStart(2, "0");
+
+    const day =
+        String(
+            date.getDate()
+        ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+
+function eventDateKey(event) {
+
+    if (event.start.date) {
+        return event.start.date;
+    }
+
+    return localDateKey(
+        new Date(
+            event.start.dateTime
+        )
+    );
+}
+
+
+function dateKeyDaysFromToday(days) {
+
+    const date =
+        new Date();
+
+    date.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+    date.setDate(
+        date.getDate() + days
+    );
+
+    return localDateKey(date);
+}
+
+
+function calendarEventCard(event) {
+
+    const when =
+        formatEventTime(event);
+
+    const color =
+        event.calendarColor ||
+        "#777777";
+
+    const name =
+        event.calendarName ||
+        "Calendar";
+
+    return `
+        <div
+            class="card calendar-card"
+            style="
+                border-left:
+                6px solid ${color};
+            "
+        >
+
+            <strong>
+                ${
+                    escapeHtml(
+                        event.summary ||
+                        "Untitled event"
+                    )
+                }
+            </strong>
+
+            <p>
+                ${when}
+            </p>
+
+            <small
+                style="
+                    color:
+                    ${color};
+                "
+            >
+                ${
+                    escapeHtml(name)
+                }
+            </small>
+
+        </div>
+    `;
+}
+
 
 // =========================
-// LOAD CALENDAR
+// NEXT EVENT
 // =========================
 
-async function loadCalendar() {
-    if (!session) {
+function renderNextEvent() {
+
+    const container =
+        document.getElementById(
+            "next-event"
+        );
+
+    if (!container) {
         return;
     }
+
+    const visibleEvents =
+        calendarEvents.filter(
+            event =>
+                !isIgnoredCalendarEvent(
+                    event
+                )
+        );
+
+    const nextEvent =
+        visibleEvents[0];
+
+    if (!nextEvent) {
+
+        container.innerHTML = `
+            <div class="card">
+                <p>No upcoming events.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        calendarEventCard(
+            nextEvent
+        );
+}
+
+
+// =========================
+// UPCOMING EVENTS
+// =========================
+
+function renderUpcomingEvents() {
 
     const container =
         document.getElementById(
             "calendar-events"
         );
 
-    container.innerHTML = `
+    const lastVisibleDate =
+        dateKeyDaysFromToday(
+            upcomingDaysShown - 1
+        );
+
+    const visibleEvents =
+        calendarEvents.filter(event => {
+
+            if (
+                isIgnoredCalendarEvent(
+                    event
+                )
+            ) {
+                return false;
+            }
+
+            const date =
+                eventDateKey(event);
+
+            return (
+                date <= lastVisibleDate
+            );
+        });
+
+
+    let html = "";
+
+    if (!visibleEvents.length) {
+
+        html = `
+            <div class="card">
+                <p>
+                    No upcoming events
+                    in this period.
+                </p>
+            </div>
+        `;
+
+    } else {
+
+        html =
+            visibleEvents
+                .map(
+                    event =>
+                        calendarEventCard(
+                            event
+                        )
+                )
+                .join("");
+    }
+
+
+    const laterEventsExist =
+        calendarEvents.some(event => {
+
+            if (
+                isIgnoredCalendarEvent(
+                    event
+                )
+            ) {
+                return false;
+            }
+
+            return (
+                eventDateKey(event) >
+                lastVisibleDate
+            );
+        });
+
+
+    html += `
+        <div class="calendar-range-controls">
+
+            ${
+                upcomingDaysShown > 2
+                    ? `
+                        <button
+                            type="button"
+                            id="calendar-show-less"
+                        >
+                            Show less
+                        </button>
+                    `
+                    : ""
+            }
+
+            ${
+                laterEventsExist
+                    ? `
+                        <button
+                            type="button"
+                            id="calendar-show-more"
+                        >
+                            Show more
+                        </button>
+                    `
+                    : ""
+            }
+
+        </div>
+    `;
+
+
+    container.innerHTML =
+        html;
+
+
+    const showMore =
+        document.getElementById(
+            "calendar-show-more"
+        );
+
+    if (showMore) {
+
+        showMore.addEventListener(
+            "click",
+            () => {
+
+                upcomingDaysShown++;
+
+                renderUpcomingEvents();
+            }
+        );
+    }
+
+
+    const showLess =
+        document.getElementById(
+            "calendar-show-less"
+        );
+
+    if (showLess) {
+
+        showLess.addEventListener(
+            "click",
+            () => {
+
+                upcomingDaysShown =
+                    Math.max(
+                        2,
+                        upcomingDaysShown - 1
+                    );
+
+                renderUpcomingEvents();
+            }
+        );
+    }
+}
+
+
+function renderCalendarViews() {
+
+    renderNextEvent();
+    renderUpcomingEvents();
+}
+
+// =========================
+// LOAD CALENDAR
+// =========================
+
+async function loadCalendar() {
+
+    if (!session) {
+        return;
+    }
+
+    const upcomingContainer =
+        document.getElementById(
+            "calendar-events"
+        );
+
+    const nextContainer =
+        document.getElementById(
+            "next-event"
+        );
+
+
+    upcomingContainer.innerHTML = `
         <div class="card">
             <p>Loading calendar...</p>
         </div>
     `;
 
+    if (nextContainer) {
+
+        nextContainer.innerHTML = `
+            <div class="card">
+                <p>Loading calendar...</p>
+            </div>
+        `;
+    }
+
+
     try {
+
         const response =
             await fetch(
                 API + "/calendar",
@@ -1676,8 +2046,10 @@ async function loadCalendar() {
                 }
             );
 
+
         if (!response.ok) {
-            container.innerHTML = `
+
+            const message = `
                 <div class="card">
                     <p>
                         Calendar error:
@@ -1686,105 +2058,64 @@ async function loadCalendar() {
                 </div>
             `;
 
+            upcomingContainer.innerHTML =
+                message;
+
+            if (nextContainer) {
+                nextContainer.innerHTML =
+                    message;
+            }
+
             return;
         }
+
 
         const data =
             await response.json();
 
+
+        calendarEvents =
+            data.items || [];
+
+
         calendarSettings =
             await fetchCalendarSettings();
 
+
         calendarData =
             getUniqueCalendars(
-                data.items || []
+                calendarEvents
             );
+
 
         renderCalendarSettings();
 
-        if (!data.items?.length) {
-            container.innerHTML = `
-                <div class="card">
-                    <p>
-                        No upcoming events.
-                    </p>
-                </div>
-            `;
+        renderCalendarViews();
 
-            return;
-        }
+    } catch (error) {
 
-        container.innerHTML =
-            data.items.map(
-                event => {
-
-                    const when =
-                        formatEventTime(
-                            event
-                        );
-
-                    const color =
-                        event.calendarColor ||
-                        "#777777";
-
-                    const name =
-                        event.calendarName ||
-                        "Calendar";
-
-                    return `
-                        <div
-                            class="card calendar-card"
-                            style="
-                                border-left:
-                                6px solid ${color};
-                            "
-                        >
-
-                            <strong>
-                                ${
-                                    escapeHtml(
-                                        event.summary ||
-                                        "Untitled event"
-                                    )
-                                }
-                            </strong>
-
-                            <p>
-                                ${when}
-                            </p>
-
-                            <small
-                                style="
-                                    color:
-                                    ${color};
-                                "
-                            >
-                                ${
-                                    escapeHtml(
-                                        name
-                                    )
-                                }
-                            </small>
-
-                        </div>
-                    `;
-                }
-            ).join("");
-    }
-
-    catch (error) {
         console.error(error);
 
-        container.innerHTML = `
+        const message = `
             <div class="card">
                 <p>
                     Calendar failed to load:
-                    ${escapeHtml(
-                        error.message
-                    )}
+                    ${
+                        escapeHtml(
+                            error.message
+                        )
+                    }
                 </p>
             </div>
         `;
+
+        upcomingContainer.innerHTML =
+            message;
+
+        if (nextContainer) {
+            nextContainer.innerHTML =
+                message;
+        }
     }
 }
 
