@@ -200,6 +200,32 @@ taskFlexibility.addEventListener(
     updateSchedulingVisibility
 );
 
+const taskEffort =
+    document.getElementById(
+        "task-effort"
+    );
+
+taskEffort.addEventListener(
+    "change",
+    updateBatchableVisibility
+);
+
+
+function updateBatchableVisibility() {
+
+    const isLow =
+        taskEffort.value === "low";
+
+    document.getElementById(
+        "task-batchable-option"
+    ).hidden = !isLow;
+
+    if (!isLow) {
+        document.getElementById(
+            "task-batchable"
+        ).checked = false;
+    }
+}
 
 function updateRecurringVisibility() {
     recurringOptions.hidden =
@@ -264,11 +290,16 @@ function openTaskForm(task = null) {
         ).value = "medium";
 
         document.getElementById(
+            "task-batchable"
+        ).checked = false;
+
+        document.getElementById(
             "task-avoid-hangover"
         ).checked = true;
 
         updateRecurringVisibility();
         updateSchedulingVisibility();
+        updateBatchableVisibility();
 
     } else {
         editingTaskId = task.id;
@@ -336,6 +367,11 @@ function openTaskForm(task = null) {
             task.effort || "medium";
 
         document.getElementById(
+            "task-batchable"
+        ).checked =
+            task.batchable === true;
+
+        document.getElementById(
             "task-avoid-hangover"
         ).checked =
             task.avoidHangover !== false;
@@ -357,6 +393,7 @@ function openTaskForm(task = null) {
 
         updateRecurringVisibility();
         updateSchedulingVisibility();
+        updateBatchableVisibility();
     }
 
     document.getElementById(
@@ -479,6 +516,14 @@ taskForm.addEventListener(
                 document.getElementById(
                     "task-effort"
                 ).value,
+
+            batchable:
+                document.getElementById(
+                    "task-effort"
+                ).value === "low" &&
+                document.getElementById(
+                    "task-batchable"
+                ).checked,
 
             avoidHangover:
                 document.getElementById(
