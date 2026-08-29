@@ -703,6 +703,34 @@ function isTaskActive(task) {
     return today >= dates.earliest;
 }
 
+function isUpcomingRecurringTask(task) {
+
+    if (task.type !== "recurring") {
+        return false;
+    }
+
+    const dates =
+        getRecurringDates(task);
+
+    if (!dates) {
+        return false;
+    }
+
+    const today =
+        dateOnly(new Date());
+
+    return today < dates.earliest;
+}
+
+
+function isCompletedOneOffTask(task) {
+
+    return (
+        task.type === "one-off" &&
+        task.completed
+    );
+}
+
 
 // =========================
 // COMPLETE TASK
@@ -1006,14 +1034,16 @@ function taskCard(
             : "";
 
     const actionButton =
-        dormant
-            ? `
+    isCompletedOneOffTask(task)
+        ? `
                 <button
                     onclick="undoCompleteTask('${task.id}')"
                 >
                     Undo
                 </button>
             `
+        : isUpcomingRecurringTask(task)
+            ? ""
             : `
                 <button
                     onclick="completeTask('${task.id}')"
@@ -1076,6 +1106,7 @@ function taskCard(
 // =========================
 
 function renderTasks() {
+
     const list =
         document.getElementById(
             "task-list"
@@ -1087,16 +1118,23 @@ function renderTasks() {
                 isTaskActive(task)
         );
 
-    const dormant =
+    const upcomingRecurring =
         tasks.filter(
             task =>
-                !isTaskActive(task)
+                isUpcomingRecurringTask(task)
+        );
+
+    const completed =
+        tasks.filter(
+            task =>
+                isCompletedOneOffTask(task)
         );
 
     let html = "";
 
 
     if (active.length === 0) {
+
         html += `
             <div class="card">
                 <p>
@@ -1106,6 +1144,7 @@ function renderTasks() {
         `;
 
     } else {
+
         html +=
             active.map(
                 task =>
@@ -1117,19 +1156,49 @@ function renderTasks() {
     }
 
 
-    if (dormant.length > 0) {
+    if (upcomingRecurring.length > 0) {
+
         html += `
             <details class="dormant-section">
 
                 <summary>
-                    Completed / dormant
-                    (${dormant.length})
+                    Upcoming recurring
+                    (${upcomingRecurring.length})
                 </summary>
 
                 <div class="dormant-list">
 
                     ${
-                        dormant.map(
+                        upcomingRecurring.map(
+                            task =>
+                                taskCard(
+                                    task,
+                                    true
+                                )
+                        ).join("")
+                    }
+
+                </div>
+
+            </details>
+        `;
+    }
+
+
+    if (completed.length > 0) {
+
+        html += `
+            <details class="dormant-section">
+
+                <summary>
+                    Completed
+                    (${completed.length})
+                </summary>
+
+                <div class="dormant-list">
+
+                    ${
+                        completed.map(
                             task =>
                                 taskCard(
                                     task,
