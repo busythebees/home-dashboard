@@ -214,6 +214,10 @@ function updateSchedulingVisibility() {
     document.getElementById(
         "task-fixed-options"
     ).hidden = !isFixed;
+
+    document.getElementById(
+        "task-due-option"
+    ).hidden = isFixed;
 }
 
 function openTaskForm(task = null) {
@@ -431,9 +435,11 @@ taskForm.addEventListener(
                 ),
 
             dueDate:
-                document.getElementById(
-                    "task-due"
-                ).value || null,
+                flexibility === "fixed"
+                    ? null
+                    : document.getElementById(
+                        "task-due"
+                    ).value || null,
 
             flexibility:
                 document.getElementById(
@@ -597,13 +603,19 @@ function formatDate(date) {
 
 function getRecurringDates(task) {
     if (!task.lastCompleted) {
-        if (!task.dueDate) {
+
+        const initialDate =
+            task.flexibility === "fixed"
+                ? task.fixedDate
+                : task.dueDate;
+
+        if (!initialDate) {
             return null;
         }
 
         const target =
             parseDateOnly(
-                task.dueDate
+                initialDate
             );
 
         const earliest =
