@@ -2128,10 +2128,14 @@ async function loadCalendar() {
 
 
         calendarData =
-            getUniqueCalendars(
-                calendarEvents
-            );
-
+            (data.calendars || [])
+                .slice()
+                .sort(
+                    (a, b) =>
+                        a.name.localeCompare(
+                            b.name
+                        )
+                );
 
         renderCalendarSettings();
 
