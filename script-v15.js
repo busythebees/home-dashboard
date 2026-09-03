@@ -1435,6 +1435,10 @@ function renderCalendarSettings() {
                     ? setting.type || "general"
                     : "general";
 
+            const displaceable =
+                typeof setting === "object" &&
+                setting.displaceable === true;
+
             return `
                 <div class="card calendar-setting">
 
@@ -1523,8 +1527,22 @@ function renderCalendarSettings() {
                         </option>
                     </select>
 
+                    <label
+                        class="calendar-displaceable-option"
+                        ${role !== "fixed" ? "hidden" : ""}
+                    >
+                        <input
+                            type="checkbox"
+                            class="calendar-displaceable"
+                            data-calendar-id="${escapeHtml(calendar.id)}"
+                            ${displaceable ? "checked" : ""}
+                        >
+
+                        Scheduler may skip events
+                    </label>
+
                 </div>
-            `;
+            `;                    
 
         }).join("");
 
@@ -1553,15 +1571,24 @@ function renderCalendarSettings() {
                             ? existing.type || "general"
                             : "general";
 
+                    const currentDisplaceable =
+                        typeof existing === "object" &&
+                        existing.displaceable === true;
+
                     calendarSettings[calendarId] = {
                         role: event.target.value,
-                        type: currentType
+                        type: currentType,
+                        displaceable:
+                            event.target.value === "fixed"
+                                ? currentDisplaceable
+                                : false
                     };
 
                     try {
 
                         await saveCalendarSettings();
 
+                        renderCalendarSettings();
                         renderCalendarViews();
 
                     } catch (error) {
@@ -1607,9 +1634,17 @@ function renderCalendarSettings() {
                             ? existing.role || "fixed"
                             : existing || "fixed";
 
+                    const currentDisplaceable =
+                        typeof existing === "object" &&
+                        existing.displaceable === true;
+
                     calendarSettings[calendarId] = {
                         role: currentRole,
-                        type: event.target.value
+                        type: event.target.value,
+                        displaceable:
+                            currentRole === "fixed"
+                                ? currentDisplaceable
+                                : false
                     };
 
                     try {
@@ -1632,6 +1667,67 @@ function renderCalendarSettings() {
                 }
             );
         });
+    container
+        .querySelectorAll(
+            ".calendar-displaceable"
+        )
+        .forEach(checkbox => {
+
+            checkbox.addEventListener(
+                "change",
+                async event => {
+
+                    const calendarId =
+                        event.target.dataset.calendarId;
+
+                    const oldSettings =
+                        JSON.parse(
+                            JSON.stringify(
+                                calendarSettings
+                            )
+                        );
+
+                    const existing =
+                        calendarSettings[calendarId];
+
+                    const currentRole =
+                        typeof existing === "object"
+                            ? existing.role || "fixed"
+                            : existing || "fixed";
+
+                    const currentType =
+                        typeof existing === "object"
+                            ? existing.type || "general"
+                            : "general";
+
+                    calendarSettings[calendarId] = {
+                        role: currentRole,
+                        type: currentType,
+                        displaceable:
+                            currentRole === "fixed" &&
+                            event.target.checked
+                    };
+
+                    try {
+
+                        await saveCalendarSettings();
+
+                    } catch (error) {
+
+                        calendarSettings =
+                            oldSettings;
+
+                        console.error(error);
+
+                        renderCalendarSettings();
+
+                        alert(
+                            "Calendar setting could not be saved."
+                        );
+                    }
+                }
+            );
+        });    
 }
 
 // =========================
