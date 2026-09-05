@@ -483,6 +483,14 @@ taskForm.addEventListener(
             specialType:
                 taskSpecialType.value || null,
 
+            laundryState:
+                existingTask?.laundryState ||
+                null,
+
+            laundryStartedAt:
+                existingTask?.laundryStartedAt ||
+                null,
+
             durationMinutes:
                 Number(
                     document.getElementById(
