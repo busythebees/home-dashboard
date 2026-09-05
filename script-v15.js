@@ -1356,6 +1356,51 @@ function taskCard(
                     <div
                         class="task-action-menu-items"
                     >
+
+                        ${
+                            (
+                                task.type === "recurring" &&
+                                isUpcomingRecurringTask(task) &&
+                                task.lastCompleted
+                            )
+                                ? `
+                                    <button
+                                        onclick="
+                                            this.closest('details').removeAttribute('open');
+                                            undoCompleteTask('${task.id}');
+                                        "
+                                    >
+                                        <svg
+                                            class="task-action-icon"
+                                            viewBox="0 0 24 24"
+                                            aria-hidden="true"
+                                        >
+                                            <path
+                                                d="M9 7 4 12l5 5"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+
+                                            <path
+                                                d="M5 12h8a6 6 0 0 1 6 6"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                            />
+                                        </svg>
+
+                                        <span>
+                                            Undo completion
+                                        </span>
+                                    </button>
+                                `
+                                : ""
+                        }
+                    
                         <button
                             onclick="
                                 this.closest('details').removeAttribute('open');
