@@ -392,3 +392,20 @@ button {
 
     text-align: left;
 }
+
+/* =========================
+   MACHINE BUSY TASK
+   ========================= */
+
+.task-machine-busy {
+    opacity: 0.58;
+}
+
+.task-machine-busy-label {
+    margin-top: 6px;
+
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    opacity: 0.85;
+}

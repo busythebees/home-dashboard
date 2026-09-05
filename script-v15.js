@@ -1475,6 +1475,12 @@ function taskCard(
             ? " · Home required"
             : "";
 
+    const machineBusy =
+        isLaundryTask(task) &&
+        task.laundryState !== "in-progress" &&
+        laundryMachineState.status ===
+            "busy-until";
+
     let actionButton = "";
 
     if (isCompletedOneOffTask(task)) {
@@ -1510,11 +1516,23 @@ function taskCard(
         ) {
 
             actionButton = `
-                <button
-                    onclick="startLaundryTask('${task.id}')"
-                >
-                    Start laundry
-                </button>
+                ${
+                    machineBusy
+                        ? `
+                            <button
+                                onclick="markLaundryMachineAvailable()"
+                            >
+                                Machine available
+                            </button>
+                        `
+                        : `
+                            <button
+                                onclick="startLaundryTask('${task.id}')"
+                            >
+                                Start laundry
+                            </button>
+                        `
+                }
             `;
 
         } else {
@@ -1535,6 +1553,10 @@ function taskCard(
                 dormant
                     ? "task-dormant"
                     : ""
+            } ${
+                machineBusy
+                    ? "task-machine-busy"
+                    : ""
             }"
         >
 
@@ -1550,6 +1572,16 @@ function taskCard(
                     ${recurrence}
                     ${home}
                 </div>
+
+                ${
+                    machineBusy
+                        ? `
+                            <div class="task-machine-busy-label">
+                                Machine busy
+                            </div>
+                        `
+                        : ""
+                }
 
             </div>
 
@@ -1621,36 +1653,9 @@ function taskCard(
                                 task.laundryState !== "in-progress"
                             )
                                 ? (
-                                    laundryMachineState.status ===
+                                    laundryMachineState.status !==
                                         "busy-until"
                                         ? `
-                                            <button
-                                                onclick="
-                                                    this.closest('details').removeAttribute('open');
-                                                    markLaundryMachineAvailable();
-                                                "
-                                            >
-                                                <svg
-                                                    class="task-action-icon"
-                                                    viewBox="0 0 24 24"
-                                                    aria-hidden="true"
-                                                >
-                                                    <path
-                                                        d="m5 12 4 4L19 6"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        stroke-width="2"
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                    />
-                                                </svg>
-
-                                                <span>
-                                                    Machine available now
-                                                </span>
-                                            </button>
-                                        `
-                                        : `
                                             <button
                                                 onclick="
                                                     this.closest('details').removeAttribute('open');
@@ -1686,6 +1691,7 @@ function taskCard(
                                                 </span>
                                             </button>
                                         `
+                                        : ""
                                 )
                                 : ""
                         }
