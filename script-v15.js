@@ -419,6 +419,8 @@ function closeTaskForm() {
     taskForm.reset();
     recurringOptions.hidden = true;
     taskForm.hidden = true;
+
+    renderTasks();
 }
 
 
@@ -992,6 +994,7 @@ function editTask(id) {
     }
 
     openTaskForm(task);
+    renderTasks();
 }
 
 
@@ -1431,19 +1434,22 @@ function renderTasks() {
     const active =
         tasks.filter(
             task =>
-                isTaskActive(task)
+                isTaskActive(task) &&
+                task.id !== editingTaskId
         );
 
     const upcomingRecurring =
         tasks.filter(
             task =>
-                isUpcomingRecurringTask(task)
+                isUpcomingRecurringTask(task) &&
+                task.id !== editingTaskId
         );
 
     const completed =
         tasks.filter(
             task =>
-                isCompletedOneOffTask(task)
+                isCompletedOneOffTask(task) &&
+                task.id !== editingTaskId
         );
 
     let html = "";
