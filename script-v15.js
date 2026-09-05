@@ -780,6 +780,72 @@ function isCompletedOneOffTask(task) {
     );
 }
 
+// =========================
+// LAUNDRY START
+// =========================
+
+function isLaundryTask(task) {
+    return (
+        task?.specialType === "washing" ||
+        task?.specialType === "clothes-washing" ||
+        task?.specialType === "bedding-washing"
+    );
+}
+
+
+async function startLaundryTask(id) {
+
+    const task =
+        tasks.find(
+            task => task.id === id
+        );
+
+    if (
+        !task ||
+        !isLaundryTask(task)
+    ) {
+        return;
+    }
+
+
+    /*
+    * Once laundry has physically
+    * started, record that fact.
+    *
+    * This does NOT complete the task
+    * and does NOT advance recurrence.
+    */
+    const oldTasks =
+        JSON.parse(
+            JSON.stringify(tasks)
+        );
+
+
+    task.laundryState =
+        "in-progress";
+
+    task.laundryStartedAt =
+        new Date().toISOString();
+
+
+    try {
+
+        await saveTasks();
+
+        renderTasks();
+
+    } catch (error) {
+
+        tasks = oldTasks;
+
+        console.error(error);
+
+        alert(
+            "Laundry start could not be saved."
+        );
+    }
+}
+
 
 // =========================
 // COMPLETE TASK
