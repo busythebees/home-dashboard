@@ -158,6 +158,11 @@ const taskForm =
 const taskType =
     document.getElementById("task-type");
 
+const taskSpecialType =
+    document.getElementById(
+        "task-special-type"
+    );
+
 const recurringOptions =
     document.getElementById(
         "recurring-options"
@@ -297,6 +302,8 @@ function openTaskForm(task = null) {
             "task-avoid-hangover"
         ).checked = true;
 
+        taskSpecialType.value = "";
+        
         updateRecurringVisibility();
         updateSchedulingVisibility();
         updateBatchableVisibility();
@@ -315,6 +322,11 @@ function openTaskForm(task = null) {
             "task-type"
         ).value =
             task.type || "one-off";
+
+        taskSpecialType.value =
+            task.specialType === "washing"
+                ? "clothes-washing"
+                : (task.specialType || "");
 
         document.getElementById(
             "task-duration"
@@ -467,6 +479,9 @@ taskForm.addEventListener(
                 ).value.trim(),
 
             type,
+
+            specialType:
+                taskSpecialType.value || null,
 
             durationMinutes:
                 Number(
