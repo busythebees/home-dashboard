@@ -163,3 +163,172 @@ button {
 .task-form h3 {
     margin: 0 0 5px;
 }
+
+/* =========================
+   TASK ACTION MENU
+   ========================= */
+
+.task-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-action-menu {
+    position: relative;
+}
+
+.task-action-menu > summary {
+    list-style: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 38px;
+    height: 38px;
+
+    padding: 0;
+
+    border: 1px solid
+        rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    font-size: 22px;
+    line-height: 1;
+}
+
+.task-action-menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.task-action-menu-items {
+    position: absolute;
+
+    top: calc(100% + 6px);
+    right: 0;
+
+    z-index: 100;
+
+    display: flex;
+    flex-direction: column;
+
+    min-width: 150px;
+
+    padding: 6px;
+
+    background: #1d1d1d;
+
+    border: 1px solid
+        rgba(255, 255, 255, 0.12);
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 8px 24px
+        rgba(0, 0, 0, 0.35);
+}
+
+.task-action-menu-items button {
+    width: 100%;
+
+    padding: 10px 12px;
+
+    border: 0;
+    border-radius: 7px;
+
+    background: transparent;
+
+    text-align: left;
+    white-space: nowrap;
+
+    cursor: pointer;
+}
+
+.task-action-menu-items button:hover {
+    background:
+        rgba(255, 255, 255, 0.08);
+}
+
+/* =========================
+   CONFIRMATION DIALOG
+   ========================= */
+
+#confirm-dialog {
+    width: min(
+        calc(100% - 32px),
+        400px
+    );
+
+    padding: 0;
+
+    border: 1px solid
+        rgba(255, 255, 255, 0.12);
+
+    border-radius: 16px;
+
+    background: #1d1d1d;
+    color: inherit;
+
+    box-shadow:
+        0 20px 60px
+        rgba(0, 0, 0, 0.5);
+}
+
+#confirm-dialog::backdrop {
+    background:
+        rgba(0, 0, 0, 0.65);
+
+    backdrop-filter:
+        blur(3px);
+}
+
+.confirm-dialog-content {
+    padding: 22px;
+}
+
+.confirm-dialog-content h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.confirm-dialog-content p {
+    margin:
+        0 0 22px 0;
+
+    opacity: 0.8;
+}
+
+.confirm-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.danger-button {
+    background: #b3261e;
+    color: white;
+}
+
+/* =========================
+   TASK ACTION ICONS
+   ========================= */
+
+.task-action-menu-items button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.task-action-icon {
+    width: 18px;
+    height: 18px;
+
+    flex: 0 0 18px;
+}
+
+.task-delete-action {
+    color: #ff6b6b;
+}

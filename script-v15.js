@@ -999,7 +999,11 @@ function editTask(id) {
 // DELETE TASK
 // =========================
 
-async function deleteTask(id) {
+let pendingDeleteTaskId = null;
+
+
+function requestDeleteTask(id) {
+
     const task =
         tasks.find(
             task => task.id === id
@@ -1009,53 +1013,132 @@ async function deleteTask(id) {
         return;
     }
 
-    const button =
-        document.querySelector(
-            `[data-delete-id="${CSS.escape(id)}"]`
+    pendingDeleteTaskId = id;
+
+    const dialog =
+        document.getElementById(
+            "confirm-dialog"
         );
 
-    if (!button) {
+    const title =
+        document.getElementById(
+            "confirm-dialog-title"
+        );
+
+    const message =
+        document.getElementById(
+            "confirm-dialog-message"
+        );
+
+    const confirmButton =
+        document.getElementById(
+            "confirm-dialog-confirm"
+        );
+
+    title.textContent =
+        "Delete task?";
+
+    message.textContent =
+        `Are you sure you want to delete “${task.name}”?`;
+
+    confirmButton.textContent =
+        "Delete";
+
+    dialog.showModal();
+}
+
+
+function cancelDeleteTask() {
+
+    pendingDeleteTaskId = null;
+
+    document
+        .getElementById(
+            "confirm-dialog"
+        )
+        .close();
+}
+
+
+async function confirmDeleteTask() {
+
+    if (!pendingDeleteTaskId) {
         return;
     }
 
-    if (
-        button.dataset.confirming !== "true"
-    ) {
-        button.dataset.confirming = "true";
-        button.textContent = "Confirm delete";
+    const id =
+        pendingDeleteTaskId;
 
-        setTimeout(() => {
-            if (
-                button.dataset.confirming === "true"
-            ) {
-                button.dataset.confirming = "false";
-                button.textContent = "×";
-            }
-        }, 5000);
-
-        return;
-    }
-
-    const oldTasks = [...tasks];
+    const oldTasks =
+        JSON.parse(
+            JSON.stringify(tasks)
+        );
 
     tasks =
         tasks.filter(
             task => task.id !== id
         );
 
+    pendingDeleteTaskId = null;
+
+    document
+        .getElementById(
+            "confirm-dialog"
+        )
+        .close();
+
     try {
+
         await saveTasks();
         renderTasks();
 
     } catch (error) {
+
         tasks = oldTasks;
+
         console.error(error);
+
+        renderTasks();
 
         alert(
             "Task could not be deleted."
         );
     }
 }
+
+document
+    .getElementById(
+        "confirm-dialog-cancel"
+    )
+    .addEventListener(
+        "click",
+        cancelDeleteTask
+    );
+
+
+document
+    .getElementById(
+        "confirm-dialog-confirm"
+    )
+    .addEventListener(
+        "click",
+        confirmDeleteTask
+    );
+
+
+document
+    .getElementById(
+        "confirm-dialog"
+    )
+    .addEventListener(
+        "cancel",
+        event => {
+
+            event.preventDefault();
+
+            cancelDeleteTask();
+        }
+    );
 
 
 // =========================
@@ -1175,43 +1258,59 @@ function taskCard(
             ? " · Home required"
             : "";
 
-    const actionButton =
-        isCompletedOneOffTask(task)
-            ? `
-                <button
-                    onclick="undoCompleteTask('${task.id}')"
-                >
-                    Undo
-                </button>
-            `
+    let actionButton = "";
 
-            : isUpcomingRecurringTask(task)
-                ? ""
+    if (isCompletedOneOffTask(task)) {
 
-            : (
-                isLaundryTask(task) &&
-                task.laundryState !==
-                    "in-progress"
-            )
-                ? `
-                    <button
-                        onclick="startLaundryTask('${task.id}')"
-                    >
-                        Start laundry
-                    </button>
-                `
+        actionButton = `
+            <button
+                onclick="undoCompleteTask('${task.id}')"
+            >
+                Undo
+            </button>
+        `;
 
-            : `
+    } else if (
+        !isUpcomingRecurringTask(task)
+    ) {
+
+        if (
+            isLaundryTask(task) &&
+            task.laundryState ===
+                "in-progress"
+        ) {
+
+            actionButton = `
                 <button
                     onclick="completeTask('${task.id}')"
                 >
-                    ${
-                        isLaundryTask(task)
-                            ? "Complete laundry"
-                            : "Done"
-                    }
+                    Complete laundry
                 </button>
             `;
+
+        } else if (
+            isLaundryTask(task)
+        ) {
+
+            actionButton = `
+                <button
+                    onclick="startLaundry('${task.id}')"
+                >
+                    Start laundry
+                </button>
+            `;
+
+        } else {
+
+            actionButton = `
+                <button
+                    onclick="completeTask('${task.id}')"
+                >
+                    Done
+                </button>
+            `;
+        }
+    }
 
     return `
         <div
@@ -1241,26 +1340,76 @@ function taskCard(
 
                 ${actionButton}
 
-                <button
-                    onclick="editTask('${task.id}')"
+                <details
+                    class="task-action-menu"
                 >
-                    Edit
-                </button>
+                    <summary
+                        aria-label="More actions"
+                        title="More actions"
+                    >
+                        ⋯
+                    </summary>
 
-                <button
-                    data-delete-id="${task.id}"
-                    onclick="deleteTask('${task.id}')"
-                    aria-label="Delete task"
-                >
-                    ×
-                </button>
+                    <div
+                        class="task-action-menu-items"
+                    >
+                        <button
+                            onclick="editTask('${task.id}')"
+                        >
+                            <svg
+                                class="task-action-icon"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M12 20h9"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                />
+                                <path
+                                    d="M16.5 3.5a2.121 2.121 0 0 1 3 3L8 18l-4 1 1-4Z"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linejoin="round"
+                                />
+                            </svg>
+
+                            <span>Edit</span>
+                        </button>
+
+                        <button
+                            onclick="requestDeleteTask('${task.id}')"
+                            class="task-delete-action"
+                        >
+                            <svg
+                                class="task-action-icon"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 10v6M14 10v6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                            </svg>
+
+                            <span>Delete</span>
+                        </button>
+                    </div>
+
+                </details>
 
             </div>
 
         </div>
     `;
 }
-
 
 // =========================
 // RENDER TASKS
