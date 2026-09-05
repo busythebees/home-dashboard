@@ -320,6 +320,10 @@ button {
     display: flex;
     align-items: center;
     gap: 10px;
+
+    color: #f2f2f2;
+
+    font: inherit;
 }
 
 .task-action-icon {
@@ -327,8 +331,15 @@ button {
     height: 18px;
 
     flex: 0 0 18px;
+
+    color: currentColor;
 }
 
 .task-delete-action {
-    color: #ff6b6b;
+    color: #f2f2f2;
+}
+
+.task-action-menu-items button:hover {
+    background:
+        rgba(255, 255, 255, 0.08);
 }
