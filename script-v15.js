@@ -876,11 +876,20 @@ async function completeTask(id) {
         return;
     }
 
+    if (isLaundryTask(task)) {
+        task.laundryState = null;
+        task.laundryStartedAt = null;
+    }
+
     const oldTasks =
         JSON.parse(
             JSON.stringify(tasks)
         );
 
+    if (isLaundryTask(task)) {
+        task.laundryState = null;
+        task.laundryStartedAt = null;
+    }
 
     if (task.type === "recurring") {
 
