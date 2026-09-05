@@ -1297,7 +1297,7 @@ function taskCard(
 
             actionButton = `
                 <button
-                    onclick="startLaundry('${task.id}')"
+                    onclick="startLaundryTask('${task.id}')"
                 >
                     Start laundry
                 </button>
