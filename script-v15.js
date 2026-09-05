@@ -1164,21 +1164,40 @@ function taskCard(
             : "";
 
     const actionButton =
-    isCompletedOneOffTask(task)
-        ? `
+        isCompletedOneOffTask(task)
+            ? `
                 <button
                     onclick="undoCompleteTask('${task.id}')"
                 >
                     Undo
                 </button>
             `
-        : isUpcomingRecurringTask(task)
-            ? ""
+
+            : isUpcomingRecurringTask(task)
+                ? ""
+
+            : (
+                isLaundryTask(task) &&
+                task.laundryState !==
+                    "in-progress"
+            )
+                ? `
+                    <button
+                        onclick="startLaundryTask('${task.id}')"
+                    >
+                        Start laundry
+                    </button>
+                `
+
             : `
                 <button
                     onclick="completeTask('${task.id}')"
                 >
-                    Done
+                    ${
+                        isLaundryTask(task)
+                            ? "Complete laundry"
+                            : "Done"
+                    }
                 </button>
             `;
 
