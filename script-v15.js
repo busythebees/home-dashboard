@@ -1354,7 +1354,10 @@ function taskCard(
                         class="task-action-menu-items"
                     >
                         <button
-                            onclick="editTask('${task.id}')"
+                            onclick="
+                                this.closest('details').removeAttribute('open');
+                                editTask('${task.id}');
+                            "
                         >
                             <svg
                                 class="task-action-icon"
@@ -1381,7 +1384,10 @@ function taskCard(
                         </button>
 
                         <button
-                            onclick="requestDeleteTask('${task.id}')"
+                            onclick="
+                                this.closest('details').removeAttribute('open');
+                                requestDeleteTask('${task.id}');
+                            "
                             class="task-delete-action"
                         >
                             <svg
