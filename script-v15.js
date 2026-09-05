@@ -59,6 +59,10 @@ if (location.hash.startsWith("#session=")) {
 
 let tasks = [];
 let editingTaskId = null;
+let laundryMachineState = {
+    status: "available",
+    busyUntil: null
+};
 
 let calendarSettings = {};
 let calendarData = [];
@@ -133,11 +137,103 @@ async function saveTasks() {
     }
 }
 
+// =========================
+// LAUNDRY MACHINE API
+// =========================
+
+async function fetchLaundryMachineState() {
+
+    if (!session) {
+        return;
+    }
+
+    const response =
+        await fetch(
+            API + "/laundry-machine-state?_=" +
+                Date.now(),
+            {
+                cache: "no-store",
+
+                headers: {
+                    Authorization:
+                        "Bearer " + session
+                }
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            "Laundry machine state load failed: " +
+            response.status
+        );
+    }
+
+    const data =
+        await response.json();
+
+    laundryMachineState =
+        data.state || {
+            status: "available",
+            busyUntil: null
+        };
+}
+
+
+async function saveLaundryMachineState(
+    status,
+    busyUntil = null
+) {
+
+    const response =
+        await fetch(
+            API + "/laundry-machine-state",
+            {
+                method: "PUT",
+
+                headers: {
+                    Authorization:
+                        "Bearer " + session,
+
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        status,
+                        busyUntil
+                    })
+            }
+        );
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Laundry machine state save failed: " +
+            response.status
+        );
+    }
+
+    const data =
+        await response.json();
+
+    laundryMachineState =
+        data.state || {
+            status,
+            busyUntil
+        };
+
+    renderTasks();
+}
+
 
 async function initialiseTasks() {
     try {
+
         tasks =
             await fetchTasks();
+
+        await fetchLaundryMachineState();
 
         renderTasks();
 
@@ -871,6 +967,124 @@ async function startLaundryTask(id) {
     }
 }
 
+// =========================
+// EXTERNAL MACHINE BUSY
+// =========================
+
+function openLaundryMachineDialog() {
+
+    document
+        .getElementById(
+            "laundry-machine-dialog"
+        )
+        .showModal();
+}
+
+
+function closeLaundryMachineDialog() {
+
+    document
+        .getElementById(
+            "laundry-machine-dialog"
+        )
+        .close();
+}
+
+
+async function markLaundryMachineBusy(
+    minutes
+) {
+
+    const busyUntil =
+        new Date(
+            Date.now() +
+            minutes * 60 * 1000
+        ).toISOString();
+
+    closeLaundryMachineDialog();
+
+    try {
+
+        await saveLaundryMachineState(
+            "busy-until",
+            busyUntil
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Machine state could not be saved."
+        );
+    }
+}
+
+
+async function markLaundryMachineAvailable() {
+
+    try {
+
+        await saveLaundryMachineState(
+            "available",
+            null
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Machine state could not be saved."
+        );
+    }
+}
+
+
+document
+    .querySelectorAll(
+        "[data-laundry-busy-minutes]"
+    )
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                markLaundryMachineBusy(
+                    Number(
+                        button.dataset
+                            .laundryBusyMinutes
+                    )
+                );
+            }
+        );
+    });
+
+
+document
+    .getElementById(
+        "laundry-machine-cancel"
+    )
+    .addEventListener(
+        "click",
+        closeLaundryMachineDialog
+    );
+
+
+document
+    .getElementById(
+        "laundry-machine-dialog"
+    )
+    .addEventListener(
+        "cancel",
+        event => {
+
+            event.preventDefault();
+
+            closeLaundryMachineDialog();
+        }
+    );
 
 // =========================
 // COMPLETE TASK
@@ -1398,6 +1612,81 @@ function taskCard(
                                         </span>
                                     </button>
                                 `
+                                : ""
+                        }
+
+                        ${
+                            (
+                                isLaundryTask(task) &&
+                                task.laundryState !== "in-progress"
+                            )
+                                ? (
+                                    laundryMachineState.status ===
+                                        "busy-until"
+                                        ? `
+                                            <button
+                                                onclick="
+                                                    this.closest('details').removeAttribute('open');
+                                                    markLaundryMachineAvailable();
+                                                "
+                                            >
+                                                <svg
+                                                    class="task-action-icon"
+                                                    viewBox="0 0 24 24"
+                                                    aria-hidden="true"
+                                                >
+                                                    <path
+                                                        d="m5 12 4 4L19 6"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        stroke-width="2"
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                    />
+                                                </svg>
+
+                                                <span>
+                                                    Machine available now
+                                                </span>
+                                            </button>
+                                        `
+                                        : `
+                                            <button
+                                                onclick="
+                                                    this.closest('details').removeAttribute('open');
+                                                    openLaundryMachineDialog();
+                                                "
+                                            >
+                                                <svg
+                                                    class="task-action-icon"
+                                                    viewBox="0 0 24 24"
+                                                    aria-hidden="true"
+                                                >
+                                                    <circle
+                                                        cx="12"
+                                                        cy="12"
+                                                        r="9"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        stroke-width="2"
+                                                    />
+
+                                                    <path
+                                                        d="M12 7v5l3 2"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        stroke-width="2"
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                    />
+                                                </svg>
+
+                                                <span>
+                                                    Machine busy…
+                                                </span>
+                                            </button>
+                                        `
+                                )
                                 : ""
                         }
                     
