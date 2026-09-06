@@ -968,6 +968,67 @@ async function startLaundryTask(id) {
 }
 
 // =========================
+// UNDO LAUNDRY START
+// =========================
+
+async function undoStartLaundryTask(id) {
+
+    const task =
+        tasks.find(
+            task => task.id === id
+        );
+
+
+    if (
+        !task ||
+        !isLaundryTask(task) ||
+        task.laundryState !==
+            "in-progress"
+    ) {
+        return;
+    }
+
+
+    const oldTasks =
+        JSON.parse(
+            JSON.stringify(tasks)
+        );
+
+
+    /*
+     * Reverse an accidental
+     * "Start laundry".
+     *
+     * This does NOT complete the task,
+     * alter recurrence, or affect
+     * lastCompleted.
+     */
+    task.laundryState =
+        null;
+
+    task.laundryStartedAt =
+        null;
+
+
+    try {
+
+        await saveTasks();
+
+        renderTasks();
+
+    } catch (error) {
+
+        tasks = oldTasks;
+
+        console.error(error);
+
+        alert(
+            "Laundry start could not be undone."
+        );
+    }
+}
+
+// =========================
 // EXTERNAL MACHINE BUSY
 // =========================
 
@@ -1641,6 +1702,49 @@ function taskCard(
 
                                         <span>
                                             Undo completion
+                                        </span>
+                                    </button>
+                                `
+                                : ""
+                        }
+
+                        ${
+                            (
+                                isLaundryTask(task) &&
+                                task.laundryState === "in-progress"
+                            )
+                                ? `
+                                    <button
+                                        onclick="
+                                            this.closest('details').removeAttribute('open');
+                                            undoStartLaundryTask('${task.id}');
+                                        "
+                                    >
+                                        <svg
+                                            class="task-action-icon"
+                                            viewBox="0 0 24 24"
+                                            aria-hidden="true"
+                                        >
+                                            <path
+                                                d="M9 7 4 12l5 5"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+
+                                            <path
+                                                d="M5 12h8a6 6 0 0 1 6 6"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                            />
+                                        </svg>
+
+                                        <span>
+                                            Undo start
                                         </span>
                                     </button>
                                 `
