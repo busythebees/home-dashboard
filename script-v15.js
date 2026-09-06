@@ -2827,24 +2827,20 @@ async function loadCalendar() {
         const data =
             await response.json();
 
+        const connectGoogleButton =
+            document.getElementById(
+                "connect-google"
+            );
 
-        calendarEvents =
-            data.items || [];
-
+        connectGoogleButton.hidden = true;
 
         calendarSettings =
             await fetchCalendarSettings();
 
-
         calendarData =
-            (data.calendars || [])
-                .slice()
-                .sort(
-                    (a, b) =>
-                        a.name.localeCompare(
-                            b.name
-                        )
-                );
+            getUniqueCalendars(
+                data.items || []
+            );
 
         renderCalendarSettings();
 
