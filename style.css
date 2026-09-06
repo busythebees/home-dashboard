@@ -409,3 +409,99 @@ button {
 
     opacity: 0.85;
 }
+
+/* =========================
+   SETTINGS PAGE
+   ========================= */
+
+.dashboard-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.settings-icon-button,
+.settings-close-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 42px;
+    height: 42px;
+    padding: 0;
+
+    flex: 0 0 42px;
+
+    background: transparent;
+    color: #eee;
+
+    border: 1px solid
+        rgba(255, 255, 255, 0.12);
+
+    cursor: pointer;
+}
+
+.settings-icon-button svg {
+    width: 23px;
+    height: 23px;
+}
+
+.settings-icon-button:hover,
+.settings-close-button:hover {
+    background:
+        rgba(255, 255, 255, 0.08);
+}
+
+.settings-close-button {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 24px;
+}
+
+.settings-header h1 {
+    margin: 0;
+
+    font-size: 1.6rem;
+}
+
+.settings-tabs {
+    display: flex;
+    gap: 6px;
+
+    padding: 5px;
+    margin-bottom: 24px;
+
+    background: #1a1a1a;
+    border-radius: 12px;
+}
+
+.settings-tab {
+    flex: 1;
+
+    background: transparent;
+    color: #aaa;
+
+    cursor: pointer;
+}
+
+.settings-tab:hover {
+    background:
+        rgba(255, 255, 255, 0.05);
+}
+
+.settings-tab.active {
+    background: #333;
+    color: #fff;
+}
+
+.settings-tab-content > section {
+    margin-bottom: 0;
+}

@@ -12,249 +12,329 @@
 
 <body>
     <main>
-        <header>
-            <div id="time">--:--</div>
-            <div id="date">Loading...</div>
+        <header class="dashboard-header">
+
+            <div>
+                <div id="time">--:--</div>
+                <div id="date">Loading...</div>
+            </div>
+
+            <button
+                type="button"
+                id="open-settings"
+                class="settings-icon-button"
+                aria-label="Open settings"
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    />
+                    <path
+                        d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.1A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.2 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2.4V9.6h.1A1.7 1.7 0 0 0 4.2 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8.6 4.2a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2.4h4v.1a1.7 1.7 0 0 0 1 1.7 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 8.6a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.1v4h-.1a1.7 1.7 0 0 0-1.7 1Z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+            </button>
+
         </header>
 
-        <section>
-            <h2>Next</h2>
+        <div id="dashboard-view">
 
-            <div id="next-event">
-                <div class="card">
-                    <p>No upcoming events.</p>
-                </div>
-            </div>
-        </section>
+            <section>
+                <h2>Next</h2>
 
-        <section>
-            <h2>Tasks</h2>
-
-            <button id="show-add-task">+ Add task</button>
-
-            <form id="task-form" hidden>
-                <div class="card task-form">
-
-                    <h3 id="task-form-title">Add task</h3>
-
-                    <label>
-                        Task
-                        <input
-                            id="task-name"
-                            type="text"
-                            required
-                            placeholder="e.g. Clean bathroom"
-                        >
-                    </label>
-
-                    <label>
-                        Type
-                        <select id="task-type">
-                            <option value="one-off">One-off</option>
-                            <option value="recurring">Recurring</option>
-                        </select>
-                    </label>
-
-                    <label>
-                        Special task type
-                        <select id="task-special-type">
-                            <option value="">Normal task</option>
-                            <option value="clothes-washing">
-                                Clothes washing
-                            </option>
-                            <option value="bedding-washing">
-                                Bedding / towels washing
-                            </option>
-                        </select>
-                    </label>
-
-                    <label>
-                        Scheduling
-                        <select id="task-flexibility">
-                            <option value="flexible">Flexible</option>
-                            <option value="fixed">Fixed</option>
-                        </select>
-                    </label>
-
-                    <label>
-                        Estimated duration
-                        <div class="duration-input">
-                            <input
-                                id="task-duration"
-                                type="number"
-                                min="5"
-                                step="5"
-                                value="30"
-                                required
-                            >
-                            <span>minutes</span>
-                        </div>
-                    </label>
-
-                    <div id="task-due-option">
-                        <label>
-                            Due date
-                            <input id="task-due" type="date">
-                        </label>
+                <div id="next-event">
+                    <div class="card">
+                        <p>No upcoming events.</p>
                     </div>
+                </div>
+            </section>
 
-                    <div id="recurring-options" hidden>
+            <section>
+                <h2>Tasks</h2>
+
+                <button id="show-add-task">+ Add task</button>
+
+                <form id="task-form" hidden>
+                    <div class="card task-form">
+
+                        <h3 id="task-form-title">Add task</h3>
 
                         <label>
-                            Ideally every
+                            Task
+                            <input
+                                id="task-name"
+                                type="text"
+                                required
+                                placeholder="e.g. Clean bathroom"
+                            >
+                        </label>
+
+                        <label>
+                            Type
+                            <select id="task-type">
+                                <option value="one-off">One-off</option>
+                                <option value="recurring">Recurring</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Special task type
+                            <select id="task-special-type">
+                                <option value="">Normal task</option>
+                                <option value="clothes-washing">
+                                    Clothes washing
+                                </option>
+                                <option value="bedding-washing">
+                                    Bedding / towels washing
+                                </option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Scheduling
+                            <select id="task-flexibility">
+                                <option value="flexible">Flexible</option>
+                                <option value="fixed">Fixed</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Estimated duration
                             <div class="duration-input">
                                 <input
-                                    id="task-interval"
+                                    id="task-duration"
                                     type="number"
-                                    min="1"
-                                    value="7"
+                                    min="5"
+                                    step="5"
+                                    value="30"
+                                    required
                                 >
-                                <span>days</span>
+                                <span>minutes</span>
                             </div>
                         </label>
 
-                        <label>
-                            Can be done this many days early
+                        <div id="task-due-option">
+                            <label>
+                                Due date
+                                <input id="task-due" type="date">
+                            </label>
+                        </div>
+
+                        <div id="recurring-options" hidden>
+
+                            <label>
+                                Ideally every
+                                <div class="duration-input">
+                                    <input
+                                        id="task-interval"
+                                        type="number"
+                                        min="1"
+                                        value="7"
+                                    >
+                                    <span>days</span>
+                                </div>
+                            </label>
+
+                            <label>
+                                Can be done this many days early
+                                <input
+                                    id="task-early"
+                                    type="number"
+                                    min="0"
+                                    value="1"
+                                >
+                            </label>
+
+                            <label>
+                                Can be done this many days late
+                                <input
+                                    id="task-late"
+                                    type="number"
+                                    min="0"
+                                    value="2"
+                                >
+                            </label>
+
+                        </div>
+
+                        <div id="task-flexible-options">
+
+                            <label>
+                                Earliest time
+                                <input
+                                    id="task-earliest-time"
+                                    type="time"
+                                    value="09:00"
+                                >
+                            </label>
+
+                            <label>
+                                Latest time
+                                <input
+                                    id="task-latest-time"
+                                    type="time"
+                                    value="20:00"
+                                >
+                            </label>
+
+                        </div>
+
+                        <div id="task-fixed-options" hidden>
+
+                            <label>
+                                Fixed date
+                                <input
+                                    id="task-fixed-date"
+                                    type="date"
+                                >
+                            </label>
+
+                            <label>
+                                Start time
+                                <input
+                                    id="task-fixed-start-time"
+                                    type="time"
+                                >
+                            </label>
+
+                        </div>
+
+                        <label class="checkbox-label">
                             <input
-                                id="task-early"
-                                type="number"
-                                min="0"
-                                value="1"
+                                id="task-requires-home"
+                                type="checkbox"
                             >
+                            Requires me to be home
                         </label>
 
                         <label>
-                            Can be done this many days late
-                            <input
-                                id="task-late"
-                                type="number"
-                                min="0"
-                                value="2"
-                            >
+                            Effort
+                            <select id="task-effort">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
                         </label>
+
+                        <label
+                            id="task-batchable-option"
+                            class="checkbox-label"
+                            hidden
+                        >
+                            <input
+                                id="task-batchable"
+                                type="checkbox"
+                            >
+                            Can be grouped with similar tasks
+                        </label>
+
+                        <label class="checkbox-label">
+                            <input
+                                id="task-avoid-hangover"
+                                type="checkbox"
+                                checked
+                            >
+                            Avoid likely hangover days
+                        </label>
+
+                        <label>
+                            Notes
+                            <textarea
+                                id="task-notes"
+                                rows="3"
+                            ></textarea>
+                        </label>
+
+                        <div class="form-buttons">
+                            <button type="submit" id="save-task">
+                                Save task
+                            </button>
+
+                            <button
+                                type="button"
+                                id="cancel-task"
+                            >
+                                Cancel
+                            </button>
+                        </div>
 
                     </div>
+                </form>
 
-                    <div id="task-flexible-options">
+                <div id="task-list"></div>
+            </section>
 
-                        <label>
-                            Earliest time
-                            <input
-                                id="task-earliest-time"
-                                type="time"
-                                value="09:00"
-                            >
-                        </label>
-
-                        <label>
-                            Latest time
-                            <input
-                                id="task-latest-time"
-                                type="time"
-                                value="20:00"
-                            >
-                        </label>
-
+            <section>
+                <h2>Upcoming</h2>
+            
+                <button id="connect-google">
+                    Connect Google Calendar
+                </button>
+            
+                <div id="calendar-events">
+                    <div class="card">
+                        <p>Google Calendar not connected</p>
                     </div>
-
-                    <div id="task-fixed-options" hidden>
-
-                        <label>
-                            Fixed date
-                            <input
-                                id="task-fixed-date"
-                                type="date"
-                            >
-                        </label>
-
-                        <label>
-                            Start time
-                            <input
-                                id="task-fixed-start-time"
-                                type="time"
-                            >
-                        </label>
-
-                    </div>
-
-                    <label class="checkbox-label">
-                        <input
-                            id="task-requires-home"
-                            type="checkbox"
-                        >
-                        Requires me to be home
-                    </label>
-
-                    <label>
-                        Effort
-                        <select id="task-effort">
-                            <option value="low">Low</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="high">High</option>
-                        </select>
-                    </label>
-
-                    <label
-                        id="task-batchable-option"
-                        class="checkbox-label"
-                        hidden
-                    >
-                        <input
-                            id="task-batchable"
-                            type="checkbox"
-                        >
-                        Can be grouped with similar tasks
-                    </label>
-
-                    <label class="checkbox-label">
-                        <input
-                            id="task-avoid-hangover"
-                            type="checkbox"
-                            checked
-                        >
-                        Avoid likely hangover days
-                    </label>
-
-                    <label>
-                        Notes
-                        <textarea
-                            id="task-notes"
-                            rows="3"
-                        ></textarea>
-                    </label>
-
-                    <div class="form-buttons">
-                        <button type="submit" id="save-task">
-                            Save task
-                        </button>
-
-                        <button
-                            type="button"
-                            id="cancel-task"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-
                 </div>
-            </form>
+            </section>
+        </div>
 
-            <div id="task-list"></div>
-        </section>
+        <div id="settings-view" hidden>
 
-        <section>
-            <h2>Upcoming</h2>
-        
-            <button id="connect-google">
-                Connect Google Calendar
-            </button>
-        
-            <div id="calendar-events">
-                <div class="card">
-                    <p>Google Calendar not connected</p>
-                </div>
+            <div class="settings-header">
+
+                <h1>Settings</h1>
+
+                <button
+                    type="button"
+                    id="close-settings"
+                    class="settings-close-button"
+                    aria-label="Close settings"
+                >
+                    ×
+                </button>
+
             </div>
-        </section>
+
+            <div
+                class="settings-tabs"
+                role="tablist"
+                aria-label="Settings categories"
+            >
+
+                <button
+                    type="button"
+                    class="settings-tab active"
+                    data-settings-tab="calendar"
+                >
+                    Calendar
+                </button>
+
+                <button
+                    type="button"
+                    class="settings-tab"
+                    data-settings-tab="scheduler"
+                >
+                    Scheduler
+                </button>
+
+            </div>
+
+            <div
+                id="calendar-settings-tab"
+                class="settings-tab-content"
+            >
 
         <section>
             <h2>Calendar Settings</h2>
@@ -270,106 +350,117 @@
             </div>
         </section>
 
-        <section>
-            <h2>Scheduler Settings</h2>
+        </div>
 
-            <div class="card task-form">
+            <div
+                id="scheduler-settings-tab"
+                class="settings-tab-content"
+                hidden
+            >
 
-                <label>
-                    Normal earliest start
-                    <input
-                        id="scheduler-normal-earliest"
-                        type="time"
-                        value="12:00"
-                    >
-                </label>
+                <section>
+                    <h2>Scheduler Settings</h2>
 
-                <label>
-                    Hangover-day earliest start
-                    <input
-                        id="scheduler-hangover-earliest"
-                        type="time"
-                        value="14:00"
-                    >
-                </label>
+                    <div class="card task-form">
 
-                <label>
-                    Preferred finish
-                    <input
-                        id="scheduler-preferred-finish"
-                        type="time"
-                        value="19:00"
-                    >
-                </label>
+                        <label>
+                            Normal earliest start
+                            <input
+                                id="scheduler-normal-earliest"
+                                type="time"
+                                value="12:00"
+                            >
+                        </label>
 
-                <label>
-                    Absolute latest finish
-                    <input
-                        id="scheduler-absolute-finish"
-                        type="time"
-                        value="21:00"
-                    >
-                </label>
+                        <label>
+                            Hangover-day earliest start
+                            <input
+                                id="scheduler-hangover-earliest"
+                                type="time"
+                                value="14:00"
+                            >
+                        </label>
 
-                <label class="checkbox-label">
-                    <input
-                        id="scheduler-early-fixed-override"
-                        type="checkbox"
-                        checked
-                    >
-                    Early fixed events override normal start time
-                </label>
+                        <label>
+                            Preferred finish
+                            <input
+                                id="scheduler-preferred-finish"
+                                type="time"
+                                value="19:00"
+                            >
+                        </label>
 
-                <label>
-                    Lecture travel before
-                    <div class="duration-input">
-                        <input
-                            id="scheduler-lecture-travel-before"
-                            type="number"
-                            min="0"
-                            step="5"
-                            value="40"
-                        >
-                        <span>minutes</span>
+                        <label>
+                            Absolute latest finish
+                            <input
+                                id="scheduler-absolute-finish"
+                                type="time"
+                                value="21:00"
+                            >
+                        </label>
+
+                        <label class="checkbox-label">
+                            <input
+                                id="scheduler-early-fixed-override"
+                                type="checkbox"
+                                checked
+                            >
+                            Early fixed events override normal start time
+                        </label>
+
+                        <label>
+                            Lecture travel before
+                            <div class="duration-input">
+                                <input
+                                    id="scheduler-lecture-travel-before"
+                                    type="number"
+                                    min="0"
+                                    step="5"
+                                    value="40"
+                                >
+                                <span>minutes</span>
+                            </div>
+                        </label>
+
+                        <label>
+                            Lecture travel after
+                            <div class="duration-input">
+                                <input
+                                    id="scheduler-lecture-travel-after"
+                                    type="number"
+                                    min="0"
+                                    step="5"
+                                    value="40"
+                                >
+                                <span>minutes</span>
+                            </div>
+                        </label>
+
+                        <label>
+                            Default transition buffer
+                            <div class="duration-input">
+                                <input
+                                    id="scheduler-transition"
+                                    type="number"
+                                    min="0"
+                                    step="5"
+                                    value="15"
+                                >
+                                <span>minutes</span>
+                            </div>
+                        </label>
+
+                        <button id="save-scheduler-settings">
+                            Save scheduler settings
+                        </button>
+
+                        <p id="scheduler-settings-status"></p>
+
                     </div>
-                </label>
-
-                <label>
-                    Lecture travel after
-                    <div class="duration-input">
-                        <input
-                            id="scheduler-lecture-travel-after"
-                            type="number"
-                            min="0"
-                            step="5"
-                            value="40"
-                        >
-                        <span>minutes</span>
-                    </div>
-                </label>
-
-                <label>
-                    Default transition buffer
-                    <div class="duration-input">
-                        <input
-                            id="scheduler-transition"
-                            type="number"
-                            min="0"
-                            step="5"
-                            value="15"
-                        >
-                        <span>minutes</span>
-                    </div>
-                </label>
-
-                <button id="save-scheduler-settings">
-                    Save scheduler settings
-                </button>
-
-                <p id="scheduler-settings-status"></p>
-
+                </section>
             </div>
-        </section>
+
+        </div>
     </main>
 
         <dialog id="confirm-dialog">
