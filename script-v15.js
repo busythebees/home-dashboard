@@ -3112,6 +3112,107 @@ document.getElementById(
 );
 
 // =========================
+// SETTINGS VIEW
+// =========================
+
+const dashboardView =
+    document.getElementById(
+        "dashboard-view"
+    );
+
+const settingsView =
+    document.getElementById(
+        "settings-view"
+    );
+
+const openSettingsButton =
+    document.getElementById(
+        "open-settings"
+    );
+
+const closeSettingsButton =
+    document.getElementById(
+        "close-settings"
+    );
+
+
+function showSettings() {
+
+    dashboardView.hidden = true;
+    settingsView.hidden = false;
+}
+
+
+function hideSettings() {
+
+    settingsView.hidden = true;
+    dashboardView.hidden = false;
+}
+
+
+function showSettingsTab(tabName) {
+
+    document
+        .querySelectorAll(
+            ".settings-tab"
+        )
+        .forEach(button => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.settingsTab ===
+                    tabName
+            );
+        });
+
+
+    document
+        .querySelectorAll(
+            ".settings-tab-content"
+        )
+        .forEach(content => {
+
+            content.hidden =
+                content.id !==
+                `${tabName}-settings-tab`;
+        });
+}
+
+
+openSettingsButton.addEventListener(
+    "click",
+    () => {
+        showSettings();
+    }
+);
+
+
+closeSettingsButton.addEventListener(
+    "click",
+    () => {
+        hideSettings();
+    }
+);
+
+
+document
+    .querySelectorAll(
+        ".settings-tab"
+    )
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                showSettingsTab(
+                    button.dataset.settingsTab
+                );
+            }
+        );
+    });
+
+// =========================
 // START
 // =========================
 
