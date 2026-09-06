@@ -2067,92 +2067,123 @@ function renderCalendarSettings() {
                         ${escapeHtml(calendar.name)}
                     </span>
 
-                    <select
-                        data-calendar-id="${escapeHtml(calendar.id)}"
-                        class="calendar-role"
-                    >
-                        <option
-                            value="fixed"
-                            ${role === "fixed" ? "selected" : ""}
-                        >
-                            Fixed
-                        </option>
+                    <div class="calendar-setting-controls">
 
-                        <option
-                            value="flexible"
-                            ${role === "flexible" ? "selected" : ""}
-                        >
-                            Flexible
-                        </option>
+                        <label class="calendar-setting-field">
 
-                        <option
-                            value="recordable"
-                            ${role === "recordable" ? "selected" : ""}
-                        >
-                            Recordable
-                        </option>
+                            <span class="calendar-setting-label">
+                                Behaviour
+                            </span>
 
-                        <option
-                            value="ignore"
-                            ${role === "ignore" ? "selected" : ""}
-                        >
-                            Ignore
-                        </option>
-                    </select>
+                            <select
+                                data-calendar-id="${escapeHtml(calendar.id)}"
+                                class="calendar-role"
+                            >
+                                <option
+                                    value="fixed"
+                                    ${role === "fixed" ? "selected" : ""}
+                                >
+                                    Fixed
+                                </option>
 
-                    <select
-                        data-calendar-id="${escapeHtml(calendar.id)}"
-                        class="calendar-type"
-                    >
-                        <option
-                            value="general"
-                            ${type === "general" ? "selected" : ""}
-                        >
-                            General
-                        </option>
+                                <option
+                                    value="flexible"
+                                    ${role === "flexible" ? "selected" : ""}
+                                >
+                                    Flexible
+                                </option>
 
-                        <option
-                            value="lecture"
-                            ${type === "lecture" ? "selected" : ""}
-                        >
-                            Lecture / Uni
-                        </option>
+                                <option
+                                    value="recordable"
+                                    ${role === "recordable" ? "selected" : ""}
+                                >
+                                    Recordable
+                                </option>
 
-                        <option
-                            value="home"
-                            ${type === "home" ? "selected" : ""}
-                        >
-                            Home
-                        </option>
+                                <option
+                                    value="ignore"
+                                    ${role === "ignore" ? "selected" : ""}
+                                >
+                                    Ignore
+                                </option>
+                            </select>
 
-                        <option
-                            value="online"
-                            ${type === "online" ? "selected" : ""}
-                        >
-                            Online
-                        </option>
+                        </label>
 
-                        <option
-                            value="away"
-                            ${type === "away" ? "selected" : ""}
-                        >
-                            Away
-                        </option>
-                    </select>
 
-                    <label
-                        class="calendar-displaceable-option"
-                        ${role !== "fixed" ? "hidden" : ""}
-                    >
-                        <input
-                            type="checkbox"
-                            class="calendar-displaceable"
-                            data-calendar-id="${escapeHtml(calendar.id)}"
-                            ${displaceable ? "checked" : ""}
+                        <label class="calendar-setting-field">
+
+                            <span class="calendar-setting-label">
+                                Event type
+                            </span>
+
+                            <select
+                                data-calendar-id="${escapeHtml(calendar.id)}"
+                                class="calendar-type"
+                            >
+                                <option
+                                    value="general"
+                                    ${type === "general" ? "selected" : ""}
+                                >
+                                    General
+                                </option>
+
+                                <option
+                                    value="lecture"
+                                    ${type === "lecture" ? "selected" : ""}
+                                >
+                                    Lecture / Uni
+                                </option>
+
+                                <option
+                                    value="home"
+                                    ${type === "home" ? "selected" : ""}
+                                >
+                                    Home
+                                </option>
+
+                                <option
+                                    value="online"
+                                    ${type === "online" ? "selected" : ""}
+                                >
+                                    Online
+                                </option>
+
+                                <option
+                                    value="away"
+                                    ${type === "away" ? "selected" : ""}
+                                >
+                                    Away
+                                </option>
+                            </select>
+
+                        </label>
+
+
+                        <label
+                            class="calendar-displaceable-option"
+                            ${role !== "fixed" ? "hidden" : ""}
                         >
 
-                        Scheduler may skip events
-                    </label>
+                            <span>
+                                Scheduler may skip events
+                            </span>
+
+                            <input
+                                type="checkbox"
+                                class="calendar-displaceable"
+                                data-calendar-id="${escapeHtml(calendar.id)}"
+                                ${displaceable ? "checked" : ""}
+                            >
+
+                            <span
+                                class="calendar-toggle"
+                                aria-hidden="true"
+                            ></span>
+
+                        </label>
+
+                    </div>
 
                 </div>
             `;                    
