@@ -740,3 +740,90 @@ button {
     outline-offset:
         2px;
 }
+
+/* =========================
+   COLLECTOR STATUS
+   ========================= */
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+.collector-status-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+    height: 42px;
+
+    padding: 0;
+
+    background: transparent;
+    cursor: pointer;
+}
+
+
+.collector-status-dot {
+    display: block;
+
+    width: 9px;
+    height: 9px;
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 0 2px
+        rgba(255, 255, 255, 0.08);
+}
+
+
+.collector-status-healthy {
+    background: #43c767;
+}
+
+
+.collector-status-degraded {
+    background: #d9a441;
+}
+
+
+.collector-status-offline,
+.collector-status-unknown {
+    background: #d9534f;
+}
+
+
+/* =========================
+   DISCORD MESSAGES
+   ========================= */
+
+#discord-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+.discord-message {
+    padding: 14px 16px;
+}
+
+
+.discord-message-content {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+
+    line-height: 1.4;
+}
+
+
+.discord-message-meta {
+    margin-top: 8px;
+
+    color: #888;
+    font-size: 0.8rem;
+}

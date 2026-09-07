@@ -70,6 +70,357 @@ let calendarEvents = [];
 
 let upcomingDaysShown = 2;
 
+// =========================
+// DISCORD COLLECTOR
+// =========================
+
+let collectorHealth = null;
+let discordMessages = [];
+
+
+function parseD1UtcTimestamp(value) {
+
+    if (!value) {
+        return null;
+    }
+
+    /*
+    * D1 CURRENT_TIMESTAMP is UTC but comes
+    * back as "YYYY-MM-DD HH:MM:SS".
+    */
+    const normalized =
+        value.includes("T")
+            ? value
+            : value.replace(" ", "T") + "Z";
+
+    const date =
+        new Date(normalized);
+
+    return Number.isNaN(date.getTime())
+        ? null
+        : date;
+}
+
+
+async function fetchCollectorStatus() {
+
+    if (!session) {
+        return null;
+    }
+
+    const response =
+        await fetch(
+            API + "/collector/status?_=" +
+                Date.now(),
+            {
+                cache: "no-store",
+
+                headers: {
+                    Authorization:
+                        "Bearer " + session
+                }
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            "Collector status load failed: " +
+            response.status
+        );
+    }
+
+    return response.json();
+}
+
+
+function getCollectorDisplayState() {
+
+    if (!collectorHealth) {
+        return "offline";
+    }
+
+    const updatedAt =
+        parseD1UtcTimestamp(
+            collectorHealth.updated_at
+        );
+
+    if (!updatedAt) {
+        return "offline";
+    }
+
+    const heartbeatAge =
+        Date.now() -
+        updatedAt.getTime();
+
+    /*
+    * Heartbeat is sent every 30 seconds.
+    * Missing three cycles means offline.
+    */
+    if (
+        heartbeatAge >
+        90 * 1000
+    ) {
+        return "offline";
+    }
+
+    if (
+        collectorHealth.status !==
+        "healthy"
+    ) {
+        return "degraded";
+    }
+
+    return "healthy";
+}
+
+
+function collectorStatusDescription() {
+
+    if (!collectorHealth) {
+        return "Collector offline";
+    }
+
+    const state =
+        getCollectorDisplayState();
+
+    const updatedAt =
+        parseD1UtcTimestamp(
+            collectorHealth.updated_at
+        );
+
+    const lastCheck =
+        updatedAt
+            ? updatedAt.toLocaleString()
+            : "Unknown";
+
+    if (state === "offline") {
+        return (
+            "Collector offline\n\n" +
+            "Last heartbeat: " +
+            lastCheck
+        );
+    }
+
+    return (
+        "Collector: " +
+        (
+            state === "healthy"
+                ? "Healthy"
+                : "Degraded"
+        ) +
+        "\n\n" +
+        "VPN: " +
+        (
+            collectorHealth.vpn_connected
+                ? "OK"
+                : "Down"
+        ) +
+        "\nDiscord: " +
+        (
+            collectorHealth.discord_running
+                ? "Running"
+                : "Down"
+        ) +
+        "\nBridge: " +
+        (
+            collectorHealth.bridge_running
+                ? "Running"
+                : "Down"
+        ) +
+        "\nForwarder: " +
+        (
+            collectorHealth.forwarder_running
+                ? "Running"
+                : "Down"
+        ) +
+        "\n\nLast heartbeat: " +
+        lastCheck
+    );
+}
+
+
+function renderCollectorStatus() {
+
+    const dot =
+        document.getElementById(
+            "collector-status-dot"
+        );
+
+    const button =
+        document.getElementById(
+            "collector-status-button"
+        );
+
+    if (!dot || !button) {
+        return;
+    }
+
+    const state =
+        getCollectorDisplayState();
+
+    dot.className =
+        "collector-status-dot " +
+        "collector-status-" +
+        state;
+
+    const label =
+        state === "healthy"
+            ? "Collector healthy"
+            : state === "degraded"
+                ? "Collector degraded"
+                : "Collector offline";
+
+    button.setAttribute(
+        "aria-label",
+        label
+    );
+
+    button.title = label;
+}
+
+
+function formatDiscordMessageTime(
+    message
+) {
+
+    const value =
+        message.message_timestamp ||
+        message.received_at;
+
+    const date =
+        message.message_timestamp
+            ? new Date(value)
+            : parseD1UtcTimestamp(value);
+
+    if (
+        !date ||
+        Number.isNaN(date.getTime())
+    ) {
+        return "";
+    }
+
+    return date.toLocaleString(
+        [],
+        {
+            dateStyle: "medium",
+            timeStyle: "short"
+        }
+    );
+}
+
+
+function renderDiscordMessages() {
+
+    const container =
+        document.getElementById(
+            "discord-messages"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    /*
+    * Keep the dashboard compact.
+    * The API retains the larger history.
+    */
+    const visibleMessages =
+        discordMessages.slice(0, 10);
+
+    if (visibleMessages.length === 0) {
+
+        container.innerHTML = `
+            <div class="card">
+                <p>No collected messages yet.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        visibleMessages
+            .map(message => {
+
+                const timestamp =
+                    formatDiscordMessageTime(
+                        message
+                    );
+
+                return `
+                    <div class="card discord-message">
+
+                        <div class="discord-message-content">
+                            ${escapeHtml(
+                                message.content || ""
+                            )}
+                        </div>
+
+                        ${
+                            timestamp
+                                ? `
+                                    <div class="discord-message-meta">
+                                        ${escapeHtml(timestamp)}
+                                    </div>
+                                `
+                                : ""
+                        }
+
+                    </div>
+                `;
+            })
+            .join("");
+}
+
+
+async function refreshCollector() {
+
+    try {
+
+        const data =
+            await fetchCollectorStatus();
+
+        if (!data) {
+            collectorHealth = null;
+            discordMessages = [];
+
+        } else {
+            collectorHealth =
+                data.health || null;
+
+            discordMessages =
+                data.messages || [];
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        /*
+        * Treat an unreachable status API as
+        * offline, but don't erase messages
+        * already visible on screen.
+        */
+        collectorHealth = null;
+    }
+
+    renderCollectorStatus();
+    renderDiscordMessages();
+}
+
+
+document
+    .getElementById(
+        "collector-status-button"
+    )
+    .addEventListener(
+        "click",
+        () => {
+            alert(
+                collectorStatusDescription()
+            );
+        }
+    );
 
 // =========================
 // TASK API
@@ -3365,6 +3716,18 @@ document
 initialiseTasks();
 loadCalendar();
 loadSchedulerSettings();
+refreshCollector();
+
+/*
+* Heartbeat itself arrives every 30 seconds,
+* so checking the dashboard every 30 seconds
+* keeps the dot current without excessive
+* requests.
+*/
+setInterval(
+    refreshCollector,
+    30 * 1000
+);
 
 
 // =========================
