@@ -409,6 +409,17 @@ async function refreshCollector() {
 }
 
 
+const collectorStatusDialog =
+    document.getElementById(
+        "collector-status-dialog"
+    );
+
+const collectorStatusDetails =
+    document.getElementById(
+        "collector-status-details"
+    );
+
+
 document
     .getElementById(
         "collector-status-button"
@@ -416,11 +427,130 @@ document
     .addEventListener(
         "click",
         () => {
-            alert(
-                collectorStatusDescription()
-            );
+
+            const health =
+                collectorHealth;
+
+            const state =
+                getCollectorDisplayState();
+
+            const updatedAt =
+                health
+                    ? parseD1UtcTimestamp(
+                        health.updated_at
+                    )
+                    : null;
+
+            const lastHeartbeat =
+                updatedAt
+                    ? updatedAt.toLocaleString(
+                        [],
+                        {
+                            dateStyle: "medium",
+                            timeStyle: "short"
+                        }
+                    )
+                    : "Unknown";
+
+            const statusLabel =
+                state === "healthy"
+                    ? "Healthy"
+                    : state === "degraded"
+                        ? "Degraded"
+                        : "Offline";
+
+            collectorStatusDetails.innerHTML = `
+                <div class="collector-dialog-overall">
+                    <span
+                        class="
+                            collector-status-dot
+                            collector-status-${state}
+                        "
+                    ></span>
+
+                    <strong>
+                        ${statusLabel}
+                    </strong>
+                </div>
+
+                <div class="collector-component-list">
+
+                    <div class="collector-component">
+                        <span>VPN</span>
+                        <span>
+                            ${
+                                health?.vpn_connected
+                                    ? "Connected"
+                                    : "Down"
+                            }
+                        </span>
+                    </div>
+
+                    <div class="collector-component">
+                        <span>Discord</span>
+                        <span>
+                            ${
+                                health?.discord_running
+                                    ? "Running"
+                                    : "Down"
+                            }
+                        </span>
+                    </div>
+
+                    <div class="collector-component">
+                        <span>Bridge</span>
+                        <span>
+                            ${
+                                health?.bridge_running
+                                    ? "Running"
+                                    : "Down"
+                            }
+                        </span>
+                    </div>
+
+                    <div class="collector-component">
+                        <span>Forwarder</span>
+                        <span>
+                            ${
+                                health?.forwarder_running
+                                    ? "Running"
+                                    : "Down"
+                            }
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="collector-last-check">
+                    Last heartbeat:
+                    ${escapeHtml(lastHeartbeat)}
+                </div>
+            `;
+
+            collectorStatusDialog.showModal();
         }
     );
+
+
+document
+    .getElementById(
+        "collector-status-close"
+    )
+    .addEventListener(
+        "click",
+        () => {
+            collectorStatusDialog.close();
+        }
+    );
+
+
+collectorStatusDialog.addEventListener(
+    "cancel",
+    event => {
+        event.preventDefault();
+        collectorStatusDialog.close();
+    }
+);
 
 // =========================
 // TASK API

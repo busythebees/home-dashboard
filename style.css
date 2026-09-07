@@ -827,3 +827,121 @@ button {
     color: #888;
     font-size: 0.8rem;
 }
+
+/* =========================
+   COLLECTOR STATUS DIALOG
+   ========================= */
+
+#collector-status-dialog {
+    width: min(
+        calc(100% - 32px),
+        380px
+    );
+
+    padding: 0;
+
+    border: 1px solid
+        rgba(255, 255, 255, 0.12);
+
+    border-radius: 16px;
+
+    background: #1d1d1d;
+    color: #eee;
+
+    box-shadow:
+        0 20px 60px
+        rgba(0, 0, 0, 0.5);
+}
+
+
+#collector-status-dialog::backdrop {
+    background:
+        rgba(0, 0, 0, 0.65);
+
+    backdrop-filter:
+        blur(3px);
+}
+
+
+.collector-status-dialog-content {
+    padding: 20px;
+}
+
+
+.collector-status-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 20px;
+}
+
+
+.collector-status-dialog-header h3 {
+    margin: 0;
+}
+
+
+.collector-status-close {
+    width: 36px;
+    height: 36px;
+
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: transparent;
+    color: #eee;
+
+    font-size: 24px;
+    cursor: pointer;
+}
+
+
+.collector-dialog-overall {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 20px;
+
+    font-size: 1.05rem;
+}
+
+
+.collector-component-list {
+    border-top: 1px solid
+        rgba(255, 255, 255, 0.08);
+
+    border-bottom: 1px solid
+        rgba(255, 255, 255, 0.08);
+}
+
+
+.collector-component {
+    display: flex;
+    justify-content: space-between;
+
+    padding: 11px 0;
+}
+
+
+.collector-component + .collector-component {
+    border-top: 1px solid
+        rgba(255, 255, 255, 0.05);
+}
+
+
+.collector-component span:last-child {
+    color: #aaa;
+}
+
+
+.collector-last-check {
+    margin-top: 16px;
+
+    color: #888;
+    font-size: 0.85rem;
+}
