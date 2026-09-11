@@ -418,17 +418,12 @@ function renderDiscordMessages() {
                             </div>
                         </div>
 
-                        <div class="discord-message-content">
-                            ${escapeHtml(
-                                (message.content || "")
-                                    .replace(/\s*<@&\d+>\s*/g, " ")
-                                    .replace(/\s*<@!?\d+>\s*/g, " ")
-                                    .split("\n")
-                                    .map(line => line.trim())
-                                    .join("\n")
-                                    .trim()
-                            )}
-                        </div>
+                        <div class="discord-message-content">${escapeHtml(
+                            (message.content || "")
+                                .replace(/\s*<@&\d+>\s*/g, " ")
+                                .replace(/\s*<@!?\d+>\s*/g, " ")
+                                .trim()
+                        )}</div>
 
                         ${timestamp
                             ? `<div class="discord-message-meta">${escapeHtml(timestamp)}</div>`
