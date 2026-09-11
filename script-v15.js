@@ -419,7 +419,12 @@ function renderDiscordMessages() {
                         </div>
 
                         <div class="discord-message-content">
-                            ${escapeHtml(message.content || "")}
+                            ${escapeHtml(
+                                (message.content || "")
+                                    .replace(/<@&\d+>/g, "")
+                                    .replace(/<@!?\d+>/g, "")
+                                    .trim()
+                            )}
                         </div>
 
                         ${timestamp
