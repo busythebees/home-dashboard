@@ -421,8 +421,8 @@ function renderDiscordMessages() {
                         <div class="discord-message-content">
                             ${escapeHtml(
                                 (message.content || "")
-                                    .replace(/<@&\d+>/g, "")
-                                    .replace(/<@!?\d+>/g, "")
+                                    .replace(/\s*<@&\d+>\s*/g, " ")
+                                    .replace(/\s*<@!?\d+>\s*/g, " ")
                                     .trim()
                             )}
                         </div>
