@@ -423,6 +423,9 @@ function renderDiscordMessages() {
                                 (message.content || "")
                                     .replace(/\s*<@&\d+>\s*/g, " ")
                                     .replace(/\s*<@!?\d+>\s*/g, " ")
+                                    .split("\n")
+                                    .map(line => line.trim())
+                                    .join("\n")
                                     .trim()
                             )}
                         </div>
