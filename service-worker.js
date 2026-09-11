@@ -5,7 +5,15 @@ const FILES = [
     "./index.html",
     "./style.css",
     "./script-v15.js",
-    "./manifest.json"
+    "./manifest.json",
+
+    "./images/societies/enable.png",
+    "./images/societies/autism-at-warwick.png",
+    "./images/societies/offbeat.png",
+    "./images/societies/bandsoc.png",
+    "./images/societies/bad-film.png",
+    "./images/societies/pride.png",
+    "./images/societies/rocksoc.png"
 ];
 
 self.addEventListener("install", event => {

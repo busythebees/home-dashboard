@@ -77,6 +77,56 @@ let upcomingDaysShown = 2;
 let collectorHealth = null;
 let discordMessages = [];
 
+const DISCORD_CHANNELS = {
+    "1054431143929319454": {
+        society: "Warwick Enable",
+        channel: "announcements",
+        logo: "images/societies/enable.png"
+    },
+
+    "766404087356588032": {
+        society: "Autism @ Warwick",
+        channel: "announcements",
+        logo: "images/societies/autism-at-warwick.png"
+    },
+
+    "758345986446983260": {
+        society: "Offbeat",
+        channel: "news",
+        logo: "images/societies/offbeat.png"
+    },
+
+    "1362824952817914028": {
+        society: "Warwick BandSoc",
+        channel: "events",
+        logo: "images/societies/bandsoc.png"
+    },
+
+    "1362886298758807582": {
+        society: "Warwick BandSoc",
+        channel: "announcements",
+        logo: "images/societies/bandsoc.png"
+    },
+
+    "759863551606259732": {
+        society: "Warwick Bad Film Society",
+        channel: "announcements",
+        logo: "images/societies/bad-film.png"
+    },
+
+    "881857706640687125": {
+        society: "Warwick Pride",
+        channel: "announcements",
+        logo: "images/societies/pride.png"
+    },
+
+    "758711329581563925": {
+        society: "Warwick RockSoc",
+        channel: "news",
+        logo: "images/societies/rocksoc.png"
+    }
+};
+
 
 function parseD1UtcTimestamp(value) {
 
@@ -325,7 +375,9 @@ function renderDiscordMessages() {
     * The API retains the larger history.
     */
     const visibleMessages =
-        discordMessages.slice(0, 10);
+        discordMessages
+            .filter(message => DISCORD_CHANNELS[message.channel_id])
+            .slice(0, 10);
 
     if (visibleMessages.length === 0) {
 
@@ -342,30 +394,37 @@ function renderDiscordMessages() {
         visibleMessages
             .map(message => {
 
-                const timestamp =
-                    formatDiscordMessageTime(
-                        message
-                    );
+                const timestamp = formatDiscordMessageTime(message);
+                const source = DISCORD_CHANNELS[message.channel_id];
 
                 return `
                     <div class="card discord-message">
 
-                        <div class="discord-message-content">
-                            ${escapeHtml(
-                                message.content || ""
-                            )}
+                        <div class="discord-message-header">
+                            <img
+                                class="discord-society-logo"
+                                src="${source.logo}"
+                                alt=""
+                            >
+
+                            <div class="discord-message-source">
+                                <div class="discord-society-name">
+                                    ${escapeHtml(source.society)}
+                                </div>
+
+                                <div class="discord-channel-name">
+                                    #${escapeHtml(source.channel)}
+                                </div>
+                            </div>
                         </div>
 
-                        ${
-                            timestamp
-                                ? `
-                                    <div class="discord-message-meta">
-                                        ${escapeHtml(timestamp)}
-                                    </div>
-                                `
-                                : ""
-                        }
+                        <div class="discord-message-content">
+                            ${escapeHtml(message.content || "")}
+                        </div>
 
+                        ${timestamp
+                            ? `<div class="discord-message-meta">${escapeHtml(timestamp)}</div>`
+                            : ""}
                     </div>
                 `;
             })
