@@ -989,3 +989,123 @@ button {
     font-size: 0.75rem;
     opacity: 0.6;
 }
+
+/* =========================
+   DISCORD EVENT CANDIDATES
+   ========================= */
+
+#discord-events {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.discord-event-card {
+    padding: 16px;
+}
+
+.discord-event-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 14px;
+}
+
+.discord-event-title {
+    margin-bottom: 10px;
+
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.discord-event-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    color: #ccc;
+    line-height: 1.4;
+}
+
+.discord-event-description {
+    margin-top: 12px;
+
+    color: #aaa;
+    line-height: 1.45;
+}
+
+.discord-event-original {
+    margin-top: 14px;
+
+    color: #aaa;
+}
+
+.discord-event-original summary {
+    cursor: pointer;
+
+    font-size: 0.85rem;
+}
+
+.discord-event-original
+.discord-message-content {
+    margin-top: 10px;
+
+    color: #ccc;
+}
+
+.discord-event-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+
+    margin-top: 16px;
+}
+
+.discord-event-actions button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 44px;
+    height: 44px;
+
+    padding: 0;
+
+    border-radius: 50%;
+
+    font-size: 1.35rem;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.discord-event-reject {
+    background: rgba(217, 83, 79, 0.16);
+    color: #ef7773;
+}
+
+.discord-event-accept {
+    background: rgba(67, 199, 103, 0.16);
+    color: #63d881;
+}
+
+.discord-event-actions button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.discord-event-review-label {
+    margin-top: 2px;
+
+    color: #d9a441;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.discord-event-needs-review {
+    border:
+        1px solid
+        rgba(217, 164, 65, 0.3);
+}

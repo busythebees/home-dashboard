@@ -76,6 +76,7 @@ let upcomingDaysShown = 2;
 
 let collectorHealth = null;
 let discordMessages = [];
+let discordEvents = [];
 
 const DISCORD_CHANNELS = {
     "1054431143929319454": {
@@ -358,6 +359,394 @@ function formatDiscordMessageTime(
     );
 }
 
+// =========================
+// DISCORD EVENT CANDIDATES
+// =========================
+
+async function fetchDiscordEvents() {
+
+    if (!session) {
+        return [];
+    }
+
+    const response =
+        await fetch(
+            API + "/discord-events?_=" +
+                Date.now(),
+            {
+                cache: "no-store",
+
+                headers: {
+                    Authorization:
+                        "Bearer " + session
+                }
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            "Discord events load failed: " +
+            response.status
+        );
+    }
+
+    const data =
+        await response.json();
+
+    return data.events || [];
+}
+
+
+function formatDiscordEventDate(event) {
+
+    if (!event.event_date) {
+        return "Date needs review";
+    }
+
+    const date =
+        new Date(
+            event.event_date +
+            "T12:00:00"
+        );
+
+    if (Number.isNaN(date.getTime())) {
+        return event.event_date;
+    }
+
+    return date.toLocaleDateString(
+        [],
+        {
+            weekday: "long",
+            day: "numeric",
+            month: "long"
+        }
+    );
+}
+
+
+function formatDiscordEventTime(event) {
+
+    if (!event.start_time) {
+        return "Time needs review";
+    }
+
+    const start =
+        event.start_time.slice(0, 5);
+
+    if (!event.end_time) {
+        return start;
+    }
+
+    return (
+        start +
+        " – " +
+        event.end_time.slice(0, 5)
+    );
+}
+
+
+function renderDiscordEvents() {
+
+    const section =
+        document.getElementById(
+            "discord-events-section"
+        );
+
+    const container =
+        document.getElementById(
+            "discord-events"
+        );
+
+    if (!section || !container) {
+        return;
+    }
+
+    if (discordEvents.length === 0) {
+        section.hidden = true;
+        container.innerHTML = "";
+        return;
+    }
+
+    section.hidden = false;
+
+    container.innerHTML =
+        discordEvents
+            .map(event => {
+
+                const source =
+                    DISCORD_CHANNELS[
+                        event.channel_id
+                    ];
+
+                const society =
+                    source?.society ||
+                    "Discord";
+
+                const logo =
+                    source?.logo || "";
+
+                const needsReview =
+                    event.status ===
+                    "needs-review";
+
+                return `
+                    <div
+                        class="
+                            card
+                            discord-event-card
+                            ${
+                                needsReview
+                                    ? "discord-event-needs-review"
+                                    : ""
+                            }
+                        "
+                    >
+
+                        <div class="discord-event-header">
+
+                            ${
+                                logo
+                                    ? `
+                                        <img
+                                            class="discord-society-logo"
+                                            src="${logo}"
+                                            alt=""
+                                        >
+                                    `
+                                    : ""
+                            }
+
+                            <div>
+                                <div class="discord-society-name">
+                                    ${escapeHtml(society)}
+                                </div>
+
+                                ${
+                                    needsReview
+                                        ? `
+                                            <div class="discord-event-review-label">
+                                                Details need review
+                                            </div>
+                                        `
+                                        : ""
+                                }
+                            </div>
+
+                        </div>
+
+                        <div class="discord-event-title">
+                            ${escapeHtml(
+                                event.title ||
+                                "Untitled event"
+                            )}
+                        </div>
+
+                        <div class="discord-event-details">
+
+                            <div>
+                                ${escapeHtml(
+                                    formatDiscordEventDate(
+                                        event
+                                    )
+                                )}
+                            </div>
+
+                            <div>
+                                ${escapeHtml(
+                                    formatDiscordEventTime(
+                                        event
+                                    )
+                                )}
+                            </div>
+
+                            ${
+                                event.location
+                                    ? `
+                                        <div>
+                                            ${escapeHtml(
+                                                event.location
+                                            )}
+                                        </div>
+                                    `
+                                    : `
+                                        <div>
+                                            Location not specified
+                                        </div>
+                                    `
+                            }
+
+                        </div>
+
+                        ${
+                            event.description
+                                ? `
+                                    <div class="discord-event-description">
+                                        ${escapeHtml(
+                                            event.description
+                                        )}
+                                    </div>
+                                `
+                                : ""
+                        }
+
+                        <details class="discord-event-original">
+                            <summary>
+                                Original announcement
+                            </summary>
+
+                            <div class="discord-message-content">
+                                ${escapeHtml(
+                                    event.content || ""
+                                )}
+                            </div>
+                        </details>
+
+                        <div class="discord-event-actions">
+
+                            <button
+                                type="button"
+                                class="discord-event-reject"
+                                data-discord-event-decision="rejected"
+                                data-message-id="${escapeHtml(
+                                    event.message_id
+                                )}"
+                                aria-label="Not interested"
+                                title="Not interested"
+                            >
+                                ×
+                            </button>
+
+                            <button
+                                type="button"
+                                class="discord-event-accept"
+                                data-discord-event-decision="accepted"
+                                data-message-id="${escapeHtml(
+                                    event.message_id
+                                )}"
+                                aria-label="I would like to go"
+                                title="I would like to go"
+                            >
+                                ✓
+                            </button>
+
+                        </div>
+
+                    </div>
+                `;
+            })
+            .join("");
+}
+
+
+async function decideDiscordEvent(
+    messageId,
+    status
+) {
+
+    const response =
+        await fetch(
+            API +
+            "/discord-events/decision",
+            {
+                method: "PUT",
+
+                headers: {
+                    Authorization:
+                        "Bearer " +
+                        session,
+
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        messageId,
+                        status
+                    })
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            "Discord event decision failed: " +
+            response.status
+        );
+    }
+
+    discordEvents =
+        discordEvents.filter(
+            event =>
+                event.message_id !==
+                messageId
+        );
+
+    renderDiscordEvents();
+}
+
+
+document
+    .getElementById(
+        "discord-events"
+    )
+    .addEventListener(
+        "click",
+        async event => {
+
+            const button =
+                event.target.closest(
+                    "[data-discord-event-decision]"
+                );
+
+            if (!button) {
+                return;
+            }
+
+            const messageId =
+                button.dataset.messageId;
+
+            const status =
+                button.dataset
+                    .discordEventDecision;
+
+            button
+                .closest(
+                    ".discord-event-card"
+                )
+                ?.querySelectorAll(
+                    "button"
+                )
+                .forEach(
+                    item =>
+                        item.disabled = true
+                );
+
+            try {
+
+                await decideDiscordEvent(
+                    messageId,
+                    status
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                button
+                    .closest(
+                        ".discord-event-card"
+                    )
+                    ?.querySelectorAll(
+                        "button"
+                    )
+                    .forEach(
+                        item =>
+                            item.disabled = false
+                    );
+            }
+        }
+    );
+
 
 function renderDiscordMessages() {
 
@@ -442,6 +831,9 @@ async function refreshCollector() {
         const data =
             await fetchCollectorStatus();
 
+        discordEvents =
+            await fetchDiscordEvents();
+
         if (!data) {
             collectorHealth = null;
             discordMessages = [];
@@ -467,6 +859,7 @@ async function refreshCollector() {
     }
 
     renderCollectorStatus();
+    renderDiscordEvents();
     renderDiscordMessages();
 }
 
