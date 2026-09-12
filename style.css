@@ -1282,6 +1282,7 @@ button {
 /* Inputs */
 
 .discord-event-edit-form input,
+.discord-event-edit-form select,
 .discord-event-edit-form textarea {
     width: 100%;
     box-sizing: border-box;
@@ -1318,6 +1319,7 @@ button {
 /* Focus state */
 
 .discord-event-edit-form input:focus,
+.discord-event-edit-form select:focus,
 .discord-event-edit-form textarea:focus {
     outline:
         2px solid

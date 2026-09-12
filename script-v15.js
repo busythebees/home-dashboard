@@ -715,6 +715,63 @@ function renderDiscordEvents() {
                                 >
                             </label>
 
+                            <label>
+                                Location type
+
+                                <select
+                                    name="locationType"
+                                >
+                                    <option
+                                        value="campus"
+                                        ${
+                                            event.location_type ===
+                                            "campus"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Campus
+                                    </option>
+
+                                    <option
+                                        value="off-campus"
+                                        ${
+                                            event.location_type ===
+                                            "off-campus"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Off campus
+                                    </option>
+
+                                    <option
+                                        value="online"
+                                        ${
+                                            event.location_type ===
+                                            "online"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Online
+                                    </option>
+
+                                    <option
+                                        value="unknown"
+                                        ${
+                                            !event.location_type ||
+                                            event.location_type ===
+                                                "unknown"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Unknown
+                                    </option>
+                                </select>
+                            </label>
+
 
                             <label>
                                 Description
@@ -1052,6 +1109,9 @@ async function saveDiscordEventDetails(
                         location:
                             details.location,
 
+                        locationType:
+                            details.locationType,
+
                         description:
                             details.description
                     })
@@ -1290,6 +1350,11 @@ document
                         location:
                             formData.get(
                                 "location"
+                            ),
+
+                        locationType:
+                            formData.get(
+                                "locationType"
                             ),
 
                         description:
