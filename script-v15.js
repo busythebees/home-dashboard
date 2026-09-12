@@ -594,11 +594,12 @@ function renderDiscordEvents() {
                                 Original announcement
                             </summary>
 
-                            <div class="discord-message-content">
-                                ${escapeHtml(
-                                    event.content || ""
-                                )}
-                            </div>
+                            <div class="discord-message-content">${escapeHtml(
+                                (event.content || "")
+                                    .replace(/\s*<@&\d+>\s*/g, " ")
+                                    .replace(/\s*<@!?\d+>\s*/g, " ")
+                                    .trim()
+                            )}</div>
                         </details>
 
                         <div class="discord-event-actions">
