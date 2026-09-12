@@ -620,6 +620,133 @@ function renderDiscordEvents() {
                             )}</div>
                         </details>
 
+                        <button
+                            type="button"
+                            class="discord-event-edit"
+                            data-discord-event-edit
+                        >
+                            ${
+                                needsReview
+                                    ? "Review details"
+                                    : "Edit details"
+                            }
+                        </button>
+
+                        <form
+                            class="discord-event-edit-form"
+                            data-discord-event-edit-form
+                            data-message-id="${escapeHtml(
+                                event.message_id
+                            )}"
+                            hidden
+                        >
+
+                            <label>
+                                Title
+
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value="${escapeHtml(
+                                        event.title || ""
+                                    )}"
+                                >
+                            </label>
+
+
+                            <label>
+                                Date
+
+                                <input
+                                    type="date"
+                                    name="eventDate"
+                                    value="${escapeHtml(
+                                        event.event_date || ""
+                                    )}"
+                                >
+                            </label>
+
+
+                            <label>
+                                Start time
+
+                                <input
+                                    type="time"
+                                    name="startTime"
+                                    value="${escapeHtml(
+                                        event.start_time
+                                            ? event.start_time.slice(
+                                                0,
+                                                5
+                                            )
+                                            : ""
+                                    )}"
+                                >
+                            </label>
+
+
+                            <label>
+                                End time
+
+                                <input
+                                    type="time"
+                                    name="endTime"
+                                    value="${escapeHtml(
+                                        event.end_time
+                                            ? event.end_time.slice(
+                                                0,
+                                                5
+                                            )
+                                            : ""
+                                    )}"
+                                >
+                            </label>
+
+
+                            <label>
+                                Location
+
+                                <input
+                                    type="text"
+                                    name="location"
+                                    value="${escapeHtml(
+                                        event.location || ""
+                                    )}"
+                                >
+                            </label>
+
+
+                            <label>
+                                Description
+
+                                <textarea
+                                    name="description"
+                                    rows="3"
+                                >${escapeHtml(
+                                    event.description || ""
+                                )}</textarea>
+                            </label>
+
+
+                            <div class="discord-event-edit-actions">
+
+                                <button
+                                    type="button"
+                                    data-discord-event-edit-cancel
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="submit"
+                                >
+                                    Save
+                                </button>
+
+                            </div>
+
+                        </form>
+
                         <div class="discord-event-actions">
 
                             <button
@@ -885,6 +1012,76 @@ async function decideDiscordEvent(
     renderRejectedDiscordEvents();
 }
 
+async function saveDiscordEventDetails(
+    messageId,
+    details
+) {
+
+    const response =
+        await fetch(
+            API +
+            "/discord-events/details",
+            {
+                method: "PUT",
+
+                headers: {
+                    Authorization:
+                        "Bearer " +
+                        session,
+
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        messageId,
+
+                        title:
+                            details.title,
+
+                        eventDate:
+                            details.eventDate,
+
+                        startTime:
+                            details.startTime,
+
+                        endTime:
+                            details.endTime,
+
+                        location:
+                            details.location,
+
+                        description:
+                            details.description
+                    })
+            }
+        );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Discord event update failed: " +
+            response.status
+        );
+    }
+
+
+    const data =
+        await fetchDiscordEvents();
+
+    discordEvents =
+        data.events;
+
+    rejectedDiscordEvents =
+        data.rejectedEvents;
+
+
+    renderDiscordEvents();
+    renderRejectedDiscordEvents();
+}
+
 
 document
     .getElementById(
@@ -946,6 +1143,173 @@ document
                     .forEach(
                         item =>
                             item.disabled = false
+                    );
+            }
+        }
+    );
+
+document
+    .getElementById(
+        "discord-events"
+    )
+    .addEventListener(
+        "click",
+        event => {
+
+            const editButton =
+                event.target.closest(
+                    "[data-discord-event-edit]"
+                );
+
+            if (editButton) {
+
+                const card =
+                    editButton.closest(
+                        ".discord-event-card"
+                    );
+
+                const form =
+                    card?.querySelector(
+                        "[data-discord-event-edit-form]"
+                    );
+
+                if (!form) {
+                    return;
+                }
+
+
+                form.hidden = false;
+                editButton.hidden = true;
+
+                return;
+            }
+
+
+            const cancelButton =
+                event.target.closest(
+                    "[data-discord-event-edit-cancel]"
+                );
+
+            if (cancelButton) {
+
+                const card =
+                    cancelButton.closest(
+                        ".discord-event-card"
+                    );
+
+                const form =
+                    card?.querySelector(
+                        "[data-discord-event-edit-form]"
+                    );
+
+                const button =
+                    card?.querySelector(
+                        "[data-discord-event-edit]"
+                    );
+
+                if (!form) {
+                    return;
+                }
+
+
+                form.reset();
+                form.hidden = true;
+
+                if (button) {
+                    button.hidden = false;
+                }
+            }
+        }
+    );
+
+document
+    .getElementById(
+        "discord-events"
+    )
+    .addEventListener(
+        "submit",
+        async event => {
+
+            const form =
+                event.target.closest(
+                    "[data-discord-event-edit-form]"
+                );
+
+            if (!form) {
+                return;
+            }
+
+
+            event.preventDefault();
+
+
+            const messageId =
+                form.dataset.messageId;
+
+            const formData =
+                new FormData(
+                    form
+                );
+
+
+            form
+                .querySelectorAll(
+                    "button, input, textarea"
+                )
+                .forEach(
+                    element =>
+                        element.disabled = true
+                );
+
+
+            try {
+
+                await saveDiscordEventDetails(
+                    messageId,
+                    {
+                        title:
+                            formData.get(
+                                "title"
+                            ),
+
+                        eventDate:
+                            formData.get(
+                                "eventDate"
+                            ),
+
+                        startTime:
+                            formData.get(
+                                "startTime"
+                            ),
+
+                        endTime:
+                            formData.get(
+                                "endTime"
+                            ),
+
+                        location:
+                            formData.get(
+                                "location"
+                            ),
+
+                        description:
+                            formData.get(
+                                "description"
+                            )
+                    }
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                form
+                    .querySelectorAll(
+                        "button, input, textarea"
+                    )
+                    .forEach(
+                        element =>
+                            element.disabled = false
                     );
             }
         }
