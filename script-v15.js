@@ -79,6 +79,9 @@ let discordMessages = [];
 let discordEvents = [];
 let rejectedDiscordEvents = [];
 
+let rejectedDiscordSort =
+    "rejected";
+
 const DISCORD_CHANNELS = {
     "1054431143929319454": {
         society: "Warwick Enable",
@@ -681,8 +684,47 @@ function renderRejectedDiscordEvents() {
 
     section.hidden = false;
 
+    const sortedEvents =
+        [...rejectedDiscordEvents]
+            .sort(
+                (a, b) => {
+
+                    if (
+                        rejectedDiscordSort ===
+                        "event"
+                    ) {
+
+                        const aDate =
+                            `${a.event_date || "9999-12-31"}T${a.start_time || "23:59"}`;
+
+                        const bDate =
+                            `${b.event_date || "9999-12-31"}T${b.start_time || "23:59"}`;
+
+                        return (
+                            aDate.localeCompare(
+                                bDate
+                            )
+                        );
+                    }
+
+
+                    const aRejected =
+                        a.rejected_at || "";
+
+                    const bRejected =
+                        b.rejected_at || "";
+
+                    return (
+                        bRejected.localeCompare(
+                            aRejected
+                        )
+                    );
+                }
+            );
+
+
     container.innerHTML =
-        rejectedDiscordEvents
+        sortedEvents
             .map(event => {
 
                 const source =
@@ -949,6 +991,21 @@ document
 
                 button.disabled = false;
             }
+        }
+    );
+
+document
+    .getElementById(
+        "rejected-discord-sort"
+    )
+    .addEventListener(
+        "change",
+        event => {
+
+            rejectedDiscordSort =
+                event.target.value;
+
+            renderRejectedDiscordEvents();
         }
     );
 
