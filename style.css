@@ -1189,3 +1189,204 @@ button {
     border-color:
         rgba(255, 255, 255, 0.28);
 }
+
+/* =========================
+   DISCORD EVENT EDITING
+   ========================= */
+
+.discord-event-edit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 14px;
+
+    padding:
+        9px 14px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+
+    border-radius: 10px;
+
+    background: #181818;
+    color: #f2f2f2;
+
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.discord-event-edit:hover {
+    border-color:
+        rgba(255, 255, 255, 0.22);
+
+    background: #202020;
+}
+
+
+/* Give the original announcement
+   breathing room before Edit details */
+
+.discord-event-original +
+.discord-event-edit {
+    margin-top: 16px;
+}
+
+
+/* Expanded editor */
+
+.discord-event-edit-form {
+    margin-top: 14px;
+
+    padding: 14px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.1);
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.025);
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+
+/* Important: preserve the HTML hidden
+   attribute when the form is closed */
+
+.discord-event-edit-form[hidden] {
+    display: none;
+}
+
+
+.discord-event-edit-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    color: #aaa;
+
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+
+/* Inputs */
+
+.discord-event-edit-form input,
+.discord-event-edit-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding:
+        10px 12px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+
+    border-radius: 10px;
+
+    background-color: #181818;
+
+    color: #f2f2f2;
+
+    font: inherit;
+    font-size: 0.95rem;
+}
+
+
+/* Keep textarea tidy */
+
+.discord-event-edit-form textarea {
+    min-height: 80px;
+
+    resize: vertical;
+
+    line-height: 1.4;
+}
+
+
+/* Focus state */
+
+.discord-event-edit-form input:focus,
+.discord-event-edit-form textarea:focus {
+    outline:
+        2px solid
+        rgba(255, 255, 255, 0.16);
+
+    outline-offset: 1px;
+
+    border-color:
+        rgba(255, 255, 255, 0.28);
+}
+
+
+/* Cancel / Save row */
+
+.discord-event-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+
+    margin-top: 2px;
+}
+
+
+.discord-event-edit-actions button {
+    padding:
+        9px 14px;
+
+    border-radius: 10px;
+
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+/* Cancel */
+
+.discord-event-edit-actions
+[data-discord-event-edit-cancel] {
+    background: #181818;
+
+    color: #bbb;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+}
+
+
+/* Save */
+
+.discord-event-edit-actions
+button[type="submit"] {
+    background:
+        rgba(67, 199, 103, 0.16);
+
+    color: #63d881;
+
+    border:
+        1px solid
+        rgba(67, 199, 103, 0.25);
+}
+
+
+.discord-event-edit-actions
+button:disabled {
+    opacity: 0.4;
+
+    cursor: default;
+}
