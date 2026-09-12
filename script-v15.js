@@ -468,13 +468,21 @@ function renderDiscordEvents() {
         return;
     }
 
-    if (discordEvents.length === 0) {
+    if (
+        discordEvents.length === 0 &&
+        rejectedDiscordEvents.length === 0
+    ) {
         section.hidden = true;
         container.innerHTML = "";
         return;
     }
 
     section.hidden = false;
+
+    if (discordEvents.length === 0) {
+        container.innerHTML = "";
+        return;
+    }
 
     container.innerHTML =
         discordEvents
