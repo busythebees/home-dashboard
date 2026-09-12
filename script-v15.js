@@ -77,6 +77,7 @@ let upcomingDaysShown = 2;
 let collectorHealth = null;
 let discordMessages = [];
 let discordEvents = [];
+let rejectedDiscordEvents = [];
 
 const DISCORD_CHANNELS = {
     "1054431143929319454": {
@@ -393,7 +394,13 @@ async function fetchDiscordEvents() {
     const data =
         await response.json();
 
-    return data.events || [];
+    return {
+        events:
+            data.events || [],
+
+        rejectedEvents:
+            data.rejectedEvents || []
+    };
 }
 
 
@@ -638,6 +645,146 @@ function renderDiscordEvents() {
             .join("");
 }
 
+function renderRejectedDiscordEvents() {
+
+    const section =
+        document.getElementById(
+            "rejected-discord-events-section"
+        );
+
+    const container =
+        document.getElementById(
+            "rejected-discord-events"
+        );
+
+    if (!section || !container) {
+        return;
+    }
+
+
+    if (
+        rejectedDiscordEvents.length === 0
+    ) {
+        section.hidden = true;
+        container.innerHTML = "";
+        return;
+    }
+
+
+    section.hidden = false;
+
+    container.innerHTML =
+        rejectedDiscordEvents
+            .map(event => {
+
+                const source =
+                    DISCORD_CHANNELS[
+                        event.channel_id
+                    ];
+
+                const society =
+                    source?.society ||
+                    "Discord";
+
+                const logo =
+                    source?.logo || "";
+
+                return `
+                    <div
+                        class="
+                            card
+                            discord-event-card
+                            rejected-discord-event-card
+                        "
+                    >
+
+                        <div class="discord-event-header">
+
+                            ${
+                                logo
+                                    ? `
+                                        <img
+                                            class="discord-society-logo"
+                                            src="${logo}"
+                                            alt=""
+                                        >
+                                    `
+                                    : ""
+                            }
+
+                            <div class="discord-society-name">
+                                ${escapeHtml(society)}
+                            </div>
+
+                        </div>
+
+                        <div class="discord-event-title">
+                            ${escapeHtml(
+                                event.title ||
+                                "Untitled event"
+                            )}
+                        </div>
+
+                        <div class="discord-event-details">
+
+                            <div>
+                                ${escapeHtml(
+                                    formatDiscordEventDate(
+                                        event
+                                    )
+                                )}
+                            </div>
+
+                            <div>
+                                ${escapeHtml(
+                                    formatDiscordEventTime(
+                                        event
+                                    )
+                                )}
+                            </div>
+
+                            ${
+                                event.location
+                                    ? `
+                                        <div>
+                                            ${escapeHtml(
+                                                event.location
+                                            )}
+                                        </div>
+                                    `
+                                    : ""
+                            }
+
+                        </div>
+
+                        ${
+                            event.description
+                                ? `
+                                    <div class="discord-event-description">
+                                        ${escapeHtml(
+                                            event.description
+                                        )}
+                                    </div>
+                                `
+                                : ""
+                        }
+
+                        <button
+                            type="button"
+                            class="discord-event-restore"
+                            data-restore-discord-event="${escapeHtml(
+                                event.message_id
+                            )}"
+                        >
+                            Restore
+                        </button>
+
+                    </div>
+                `;
+            })
+            .join("");
+}
+
 
 async function decideDiscordEvent(
     messageId,
@@ -675,14 +822,17 @@ async function decideDiscordEvent(
         );
     }
 
+    const data =
+        await fetchDiscordEvents();
+
     discordEvents =
-        discordEvents.filter(
-            event =>
-                event.message_id !==
-                messageId
-        );
+        data.events;
+
+    rejectedDiscordEvents =
+        data.rejectedEvents;
 
     renderDiscordEvents();
+    renderRejectedDiscordEvents();
 }
 
 
@@ -703,12 +853,14 @@ document
                 return;
             }
 
+
             const messageId =
                 button.dataset.messageId;
 
             const status =
                 button.dataset
                     .discordEventDecision;
+
 
             button
                 .closest(
@@ -721,6 +873,7 @@ document
                     item =>
                         item.disabled = true
                 );
+
 
             try {
 
@@ -744,6 +897,49 @@ document
                         item =>
                             item.disabled = false
                     );
+            }
+        }
+    );
+
+
+document
+    .getElementById(
+        "rejected-discord-events"
+    )
+    .addEventListener(
+        "click",
+        async event => {
+
+            const button =
+                event.target.closest(
+                    "[data-restore-discord-event]"
+                );
+
+            if (!button) {
+                return;
+            }
+
+
+            const messageId =
+                button.dataset
+                    .restoreDiscordEvent;
+
+
+            button.disabled = true;
+
+
+            try {
+
+                await decideDiscordEvent(
+                    messageId,
+                    "candidate"
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                button.disabled = false;
             }
         }
     );
@@ -832,8 +1028,14 @@ async function refreshCollector() {
         const data =
             await fetchCollectorStatus();
 
-        discordEvents =
+        const discordEventData =
             await fetchDiscordEvents();
+
+        discordEvents =
+            discordEventData.events;
+
+        rejectedDiscordEvents =
+            discordEventData.rejectedEvents;
 
         if (!data) {
             collectorHealth = null;
@@ -861,6 +1063,7 @@ async function refreshCollector() {
 
     renderCollectorStatus();
     renderDiscordEvents();
+    renderRejectedDiscordEvents();
     renderDiscordMessages();
 }
 
