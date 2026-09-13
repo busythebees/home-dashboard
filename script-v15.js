@@ -593,6 +593,19 @@ function renderDiscordEvents() {
                                     `
                             }
 
+                            ${
+                                event.meeting_point
+                                    ? `
+                                        <div>
+                                            Meeting point:
+                                            ${escapeHtml(
+                                                event.meeting_point
+                                            )}
+                                        </div>
+                                    `
+                                    : ""
+                            }
+
                         </div>
 
                         ${
@@ -763,6 +776,95 @@ function renderDiscordEvents() {
                                             !event.location_type ||
                                             event.location_type ===
                                                 "unknown"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Unknown
+                                    </option>
+                                </select>
+                            </label>
+
+
+                            <label>
+                                Meeting point
+
+                                <input
+                                    type="text"
+                                    name="meetingPoint"
+                                    value="${escapeHtml(
+                                        event.meeting_point || ""
+                                    )}"
+                                    placeholder="None"
+                                >
+                            </label>
+
+
+                            <label>
+                                Meeting point type
+
+                                <select
+                                    name="meetingPointType"
+                                >
+                                    <option
+                                        value=""
+                                        ${
+                                            !event.meeting_point
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        None
+                                    </option>
+
+                                    <option
+                                        value="campus"
+                                        ${
+                                            event.meeting_point &&
+                                            event.meeting_point_type ===
+                                                "campus"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Campus
+                                    </option>
+
+                                    <option
+                                        value="off-campus"
+                                        ${
+                                            event.meeting_point &&
+                                            event.meeting_point_type ===
+                                                "off-campus"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Off campus
+                                    </option>
+
+                                    <option
+                                        value="online"
+                                        ${
+                                            event.meeting_point &&
+                                            event.meeting_point_type ===
+                                                "online"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Online
+                                    </option>
+
+                                    <option
+                                        value="unknown"
+                                        ${
+                                            event.meeting_point &&
+                                            (
+                                                !event.meeting_point_type ||
+                                                event.meeting_point_type ===
+                                                    "unknown"
+                                            )
                                                 ? "selected"
                                                 : ""
                                         }
@@ -1112,6 +1214,12 @@ async function saveDiscordEventDetails(
                         locationType:
                             details.locationType,
 
+                        meetingPoint:
+                            details.meetingPoint,
+
+                        meetingPointType:
+                            details.meetingPointType,
+
                         description:
                             details.description
                     })
@@ -1314,7 +1422,7 @@ document
 
             form
                 .querySelectorAll(
-                    "button, input, textarea"
+                    "button, input, textarea, select"
                 )
                 .forEach(
                     element =>
@@ -1357,6 +1465,16 @@ document
                                 "locationType"
                             ),
 
+                        meetingPoint:
+                            formData.get(
+                                "meetingPoint"
+                            ),
+
+                        meetingPointType:
+                            formData.get(
+                                "meetingPointType"
+                            ),
+
                         description:
                             formData.get(
                                 "description"
@@ -1370,7 +1488,7 @@ document
 
                 form
                     .querySelectorAll(
-                        "button, input, textarea"
+                        "button, input, textarea, select"
                     )
                     .forEach(
                         element =>
