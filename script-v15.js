@@ -601,6 +601,16 @@ function renderDiscordEvents() {
                                             ${escapeHtml(
                                                 event.meeting_point
                                             )}
+                                            ${
+                                                event.meeting_time
+                                                    ? ` at ${escapeHtml(
+                                                        event.meeting_time.slice(
+                                                            0,
+                                                            5
+                                                        )
+                                                    )}`
+                                                    : ""
+                                            }
                                         </div>
                                     `
                                     : ""
@@ -874,6 +884,22 @@ function renderDiscordEvents() {
                                 </select>
                             </label>
 
+                            <label>
+                                Meeting time
+
+                                <input
+                                    type="time"
+                                    name="meetingTime"
+                                    value="${escapeHtml(
+                                        event.meeting_time
+                                            ? event.meeting_time.slice(
+                                                0,
+                                                5
+                                            )
+                                            : ""
+                                    )}"
+                                >
+                            </label>
 
                             <label>
                                 Description
@@ -1220,6 +1246,9 @@ async function saveDiscordEventDetails(
                         meetingPointType:
                             details.meetingPointType,
 
+                        meetingTime:
+                            details.meetingTime,
+
                         description:
                             details.description
                     })
@@ -1473,6 +1502,11 @@ document
                         meetingPointType:
                             formData.get(
                                 "meetingPointType"
+                            ),
+
+                        meetingTime:
+                            formData.get(
+                                "meetingTime"
                             ),
 
                         description:
