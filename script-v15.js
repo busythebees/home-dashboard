@@ -83,6 +83,7 @@ let rejectedDiscordEvents = [];
 // Loaded alongside the legacy event pipeline
 // during migration.
 let discordItems = [];
+let rejectedDiscordItems = [];
 
 let rejectedDiscordSort =
     "rejected";
@@ -444,12 +445,55 @@ async function fetchDiscordItems() {
     return data.items || [];
 }
 
+async function fetchRejectedDiscordItems() {
+
+    if (!session) {
+        return [];
+    }
+
+    const response =
+        await fetch(
+            API +
+                "/discord-items?status=rejected&_=" +
+                Date.now(),
+            {
+                cache: "no-store",
+
+                headers: {
+                    Authorization:
+                        "Bearer " + session
+                }
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            "Rejected Discord items load failed: " +
+            response.status
+        );
+    }
+
+    const data =
+        await response.json();
+
+    return data.items || [];
+}
+
 function getCanonicalDiscordEvents() {
 
     return discordItems.filter(
         item =>
             item.item_type === "event" &&
             item.status === "candidate"
+    );
+}
+
+function getCanonicalRejectedDiscordEvents() {
+
+    return rejectedDiscordItems.filter(
+        item =>
+            item.item_type === "event" &&
+            item.status === "rejected"
     );
 }
 
@@ -904,9 +948,12 @@ function renderRejectedDiscordEvents() {
         return;
     }
 
+    const canonicalRejectedEvents =
+        getCanonicalRejectedDiscordEvents();
+
 
     if (
-        rejectedDiscordEvents.length === 0
+        canonicalRejectedEvents.length === 0
     ) {
         section.hidden = true;
         container.innerHTML = "";
@@ -917,7 +964,7 @@ function renderRejectedDiscordEvents() {
     section.hidden = false;
 
     const sortedEvents =
-        [...rejectedDiscordEvents]
+        [...canonicalRejectedEvents]
             .sort(
                 (a, b) => {
 
@@ -1054,9 +1101,7 @@ function renderRejectedDiscordEvents() {
                         <button
                             type="button"
                             class="discord-event-restore"
-                            data-restore-discord-event="${escapeHtml(
-                                event.message_id
-                            )}"
+                            data-restore-discord-item="${event.id}"
                         >
                             Restore
                         </button>
@@ -1105,7 +1150,11 @@ async function decideDiscordItem(
     discordItems =
         await fetchDiscordItems();
 
+    rejectedDiscordItems =
+        await fetchRejectedDiscordItems();
+
     renderDiscordEvents();
+    renderRejectedDiscordEvents();
 }
 
 async function saveDiscordItemDetails(
@@ -1445,7 +1494,7 @@ document
 
             const button =
                 event.target.closest(
-                    "[data-restore-discord-event]"
+                    "[data-restore-discord-item]"
                 );
 
             if (!button) {
@@ -1453,9 +1502,11 @@ document
             }
 
 
-            const messageId =
-                button.dataset
-                    .restoreDiscordEvent;
+            const itemId =
+                Number(
+                    button.dataset
+                        .restoreDiscordItem
+                );
 
 
             button.disabled = true;
@@ -1463,8 +1514,8 @@ document
 
             try {
 
-                await decideDiscordEvent(
-                    messageId,
+                await decideDiscordItem(
+                    itemId,
                     "candidate"
                 );
 
@@ -1587,6 +1638,9 @@ async function refreshCollector() {
 
         discordItems =
             await fetchDiscordItems();
+
+        rejectedDiscordItems =
+            await fetchRejectedDiscordItems();
 
         if (!data) {
             collectorHealth = null;
