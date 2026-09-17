@@ -879,6 +879,35 @@ function renderDiscordEvents() {
                             </label>
 
                             <label>
+                                Drinking status
+                                <select
+                                    name="drinkingStatus"
+                                >
+                                    ${[
+                                        ["unclear", "Unclear"],
+                                        ["drinking", "Drinking"],
+                                        ["non_drinking", "Non-drinking"]
+                                    ].map(
+                                        ([value, label]) => `
+                                            <option
+                                                value="${value}"
+                                                ${
+                                                    (
+                                                        event.drinking_status ||
+                                                        "unclear"
+                                                    ) === value
+                                                        ? "selected"
+                                                        : ""
+                                                }
+                                            >
+                                                ${label}
+                                            </option>
+                                        `
+                                    ).join("")}
+                                </select>
+                            </label>
+
+                            <label>
                                 Description
                                 <textarea
                                     name="description"
@@ -1211,6 +1240,9 @@ async function saveDiscordItemDetails(
                         meetingTime:
                             details.meetingTime,
 
+                        drinkingStatus:
+                            details.drinkingStatus,
+
                         description:
                             details.description
                     })
@@ -1461,6 +1493,11 @@ document
                         meetingTime:
                             formData.get(
                                 "meetingTime"
+                            ),
+
+                        drinkingStatus:
+                            formData.get(
+                                "drinkingStatus"
                             ),
 
                         description:
