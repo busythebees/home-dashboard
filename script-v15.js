@@ -690,6 +690,16 @@ function renderDiscordEvents() {
                                     `
                             }
 
+                            <div>
+                                ${
+                                    event.drinking_status === "drinking"
+                                        ? "Drinking"
+                                        : event.drinking_status === "non_drinking"
+                                            ? "Non-drinking"
+                                            : "Drinking status unclear"
+                                }
+                            </div>
+
                             ${
                                 event.meeting_point
                                     ? `
