@@ -518,8 +518,11 @@ function renderDiscordEvents() {
         return;
     }
 
+    const canonicalEvents =
+        getCanonicalDiscordEvents();
+
     if (
-        discordEvents.length === 0 &&
+        canonicalEvents.length === 0 &&
         rejectedDiscordEvents.length === 0
     ) {
         section.hidden = true;
@@ -529,13 +532,13 @@ function renderDiscordEvents() {
 
     section.hidden = false;
 
-    if (discordEvents.length === 0) {
+    if (canonicalEvents.length === 0) {
         container.innerHTML = "";
         return;
     }
 
     container.innerHTML =
-        discordEvents
+        canonicalEvents
             .map(event => {
 
                 const source =
@@ -677,317 +680,13 @@ function renderDiscordEvents() {
                                 : ""
                         }
 
-                        <details class="discord-event-original">
-                            <summary>
-                                Original announcement
-                            </summary>
-
-                            <div class="discord-message-content">${escapeHtml(
-                                (event.content || "")
-                                    .replace(/\s*<@&\d+>\s*/g, " ")
-                                    .replace(/\s*<@!?\d+>\s*/g, " ")
-                                    .trim()
-                            )}</div>
-                        </details>
-
-                        <button
-                            type="button"
-                            class="discord-event-edit"
-                            data-discord-event-edit
-                        >
-                            ${
-                                needsReview
-                                    ? "Review details"
-                                    : "Edit details"
-                            }
-                        </button>
-
-                        <form
-                            class="discord-event-edit-form"
-                            data-discord-event-edit-form
-                            data-message-id="${escapeHtml(
-                                event.message_id
-                            )}"
-                            hidden
-                        >
-
-                            <label>
-                                Title
-
-                                <input
-                                    type="text"
-                                    name="title"
-                                    value="${escapeHtml(
-                                        event.title || ""
-                                    )}"
-                                >
-                            </label>
-
-
-                            <label>
-                                Date
-
-                                <input
-                                    type="date"
-                                    name="eventDate"
-                                    value="${escapeHtml(
-                                        event.event_date || ""
-                                    )}"
-                                >
-                            </label>
-
-
-                            <label>
-                                Start time
-
-                                <input
-                                    type="time"
-                                    name="startTime"
-                                    value="${escapeHtml(
-                                        event.start_time
-                                            ? event.start_time.slice(
-                                                0,
-                                                5
-                                            )
-                                            : ""
-                                    )}"
-                                >
-                            </label>
-
-
-                            <label>
-                                End time
-
-                                <input
-                                    type="time"
-                                    name="endTime"
-                                    value="${escapeHtml(
-                                        event.end_time
-                                            ? event.end_time.slice(
-                                                0,
-                                                5
-                                            )
-                                            : ""
-                                    )}"
-                                >
-                            </label>
-
-
-                            <label>
-                                Location
-
-                                <input
-                                    type="text"
-                                    name="location"
-                                    value="${escapeHtml(
-                                        event.location || ""
-                                    )}"
-                                >
-                            </label>
-
-                            <label>
-                                Location type
-
-                                <select
-                                    name="locationType"
-                                >
-                                    <option
-                                        value="campus"
-                                        ${
-                                            event.location_type ===
-                                            "campus"
-                                                ? "selected"
-                                                : ""
-                                        }
-                                    >
-                                        Campus
-                                    </option>
-
-                                    <option
-                                        value="off-campus"
-                                        ${
-                                            event.location_type ===
-                                            "off-campus"
-                                                ? "selected"
-                                                : ""
-                                        }
-                                    >
-                                        Off campus
-                                    </option>
-
-                                    <option
-                                        value="online"
-                                        ${
-                                            event.location_type ===
-                                            "online"
-                                                ? "selected"
-                                                : ""
-                                        }
-                                    >
-                                        Online
-                                    </option>
-
-                                    <option
-                                        value="unknown"
-                                        ${
-                                            !event.location_type ||
-                                            event.location_type ===
-                                                "unknown"
-                                                ? "selected"
-                                                : ""
-                                        }
-                                    >
-                                        Unknown
-                                    </option>
-                                </select>
-                            </label>
-
-
-                            <label>
-                                Meeting point
-
-                                <input
-                                    type="text"
-                                    name="meetingPoint"
-                                    value="${escapeHtml(
-                                        event.meeting_point || ""
-                                    )}"
-                                    placeholder="None"
-                                >
-                            </label>
-
-
-                            <label>
-                                Meeting point type
-
-                                <select
-                                    name="meetingPointType"
-                                >
-                                    <option
-                                        value=""
-                                        ${
-                                            !event.meeting_point
-                                                ? "selected"
-                                                : ""
-                                        }
-                                    >
-                                        None
-                                    </option>
-
-                                    <option
-                                        value="campus"
-                                        ${
-                                            event.meeting_point &&
-                                            event.meeting_point_type ===
-                                                "campus"
-                                                ? "selected"
-                                                : ""
-                                        }
-                                    >
-                                        Campus
-                                    </option>
-
-                                    <option
-                                        value="off-campus"
-                                        ${
-                                            event.meeting_point &&
-                                            event.meeting_point_type ===
-                                                "off-campus"
-                                                ? "selected"
-                                                : ""
-                                        }
-                                    >
-                                        Off campus
-                                    </option>
-
-                                    <option
-                                        value="online"
-                                        ${
-                                            event.meeting_point &&
-                                            event.meeting_point_type ===
-                                                "online"
-                                                ? "selected"
-                                                : ""
-                                        }
-                                    >
-                                        Online
-                                    </option>
-
-                                    <option
-                                        value="unknown"
-                                        ${
-                                            event.meeting_point &&
-                                            (
-                                                !event.meeting_point_type ||
-                                                event.meeting_point_type ===
-                                                    "unknown"
-                                            )
-                                                ? "selected"
-                                                : ""
-                                        }
-                                    >
-                                        Unknown
-                                    </option>
-                                </select>
-                            </label>
-
-                            <label>
-                                Meeting time
-
-                                <input
-                                    type="time"
-                                    name="meetingTime"
-                                    value="${escapeHtml(
-                                        event.meeting_time
-                                            ? event.meeting_time.slice(
-                                                0,
-                                                5
-                                            )
-                                            : ""
-                                    )}"
-                                >
-                            </label>
-
-                            <label>
-                                Description
-
-                                <textarea
-                                    name="description"
-                                    rows="3"
-                                >${escapeHtml(
-                                    event.description || ""
-                                )}</textarea>
-                            </label>
-
-
-                            <div class="discord-event-edit-actions">
-
-                                <button
-                                    type="button"
-                                    data-discord-event-edit-cancel
-                                >
-                                    Cancel
-                                </button>
-
-                                <button
-                                    type="submit"
-                                >
-                                    Save
-                                </button>
-
-                            </div>
-
-                        </form>
-
                         <div class="discord-event-actions">
 
                             <button
                                 type="button"
                                 class="discord-event-reject"
                                 data-discord-event-decision="rejected"
-                                data-message-id="${escapeHtml(
-                                    event.message_id
-                                )}"
+                                data-item-id="${event.id}"
                                 aria-label="Not interested"
                                 title="Not interested"
                             >
@@ -998,9 +697,7 @@ function renderDiscordEvents() {
                                 type="button"
                                 class="discord-event-accept"
                                 data-discord-event-decision="accepted"
-                                data-message-id="${escapeHtml(
-                                    event.message_id
-                                )}"
+                                data-item-id="${event.id}"
                                 aria-label="I would like to go"
                                 title="I would like to go"
                             >
@@ -1194,16 +891,14 @@ function renderRejectedDiscordEvents() {
             .join("");
 }
 
-
-async function decideDiscordEvent(
-    messageId,
+async function decideDiscordItem(
+    itemId,
     status
 ) {
-
     const response =
         await fetch(
             API +
-            "/discord-events/decision",
+            "/discord-items/decision",
             {
                 method: "PUT",
 
@@ -1218,7 +913,7 @@ async function decideDiscordEvent(
 
                 body:
                     JSON.stringify({
-                        messageId,
+                        itemId,
                         status
                     })
             }
@@ -1226,22 +921,15 @@ async function decideDiscordEvent(
 
     if (!response.ok) {
         throw new Error(
-            "Discord event decision failed: " +
+            "Discord item decision failed: " +
             response.status
         );
     }
 
-    const data =
-        await fetchDiscordEvents();
-
-    discordEvents =
-        data.events;
-
-    rejectedDiscordEvents =
-        data.rejectedEvents;
+    discordItems =
+        await fetchDiscordItems();
 
     renderDiscordEvents();
-    renderRejectedDiscordEvents();
 }
 
 async function saveDiscordEventDetails(
@@ -1345,8 +1033,10 @@ document
             }
 
 
-            const messageId =
-                button.dataset.messageId;
+            const itemId =
+                Number(
+                    button.dataset.itemId
+                );
 
             const status =
                 button.dataset
@@ -1368,8 +1058,8 @@ document
 
             try {
 
-                await decideDiscordEvent(
-                    messageId,
+                await decideDiscordItem(
+                    itemId,
                     status
                 );
 
