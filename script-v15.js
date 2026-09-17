@@ -680,6 +680,182 @@ function renderDiscordEvents() {
                                 : ""
                         }
 
+                        <button
+                            type="button"
+                            class="discord-event-edit"
+                            data-discord-event-edit
+                        >
+                            Edit
+                        </button>
+
+                        <form
+                            class="discord-event-edit-form"
+                            data-discord-event-edit-form
+                            data-item-id="${event.id}"
+                            hidden
+                        >
+                            <label>
+                                Title
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value="${escapeHtml(
+                                        event.title || ""
+                                    )}"
+                                >
+                            </label>
+
+                            <label>
+                                Date
+                                <input
+                                    type="date"
+                                    name="eventDate"
+                                    value="${escapeHtml(
+                                        event.event_date || ""
+                                    )}"
+                                >
+                            </label>
+
+                            <label>
+                                Start time
+                                <input
+                                    type="time"
+                                    name="startTime"
+                                    value="${escapeHtml(
+                                        event.start_time
+                                            ? event.start_time.slice(0, 5)
+                                            : ""
+                                    )}"
+                                >
+                            </label>
+
+                            <label>
+                                End time
+                                <input
+                                    type="time"
+                                    name="endTime"
+                                    value="${escapeHtml(
+                                        event.end_time
+                                            ? event.end_time.slice(0, 5)
+                                            : ""
+                                    )}"
+                                >
+                            </label>
+
+                            <label>
+                                Location
+                                <input
+                                    type="text"
+                                    name="location"
+                                    value="${escapeHtml(
+                                        event.location || ""
+                                    )}"
+                                >
+                            </label>
+
+                            <label>
+                                Location type
+                                <select
+                                    name="locationType"
+                                >
+                                    ${[
+                                        "unknown",
+                                        "campus",
+                                        "off-campus",
+                                        "online"
+                                    ].map(
+                                        value => `
+                                            <option
+                                                value="${value}"
+                                                ${
+                                                    event.location_type === value
+                                                        ? "selected"
+                                                        : ""
+                                                }
+                                            >
+                                                ${value}
+                                            </option>
+                                        `
+                                    ).join("")}
+                                </select>
+                            </label>
+
+                            <label>
+                                Meeting point
+                                <input
+                                    type="text"
+                                    name="meetingPoint"
+                                    value="${escapeHtml(
+                                        event.meeting_point || ""
+                                    )}"
+                                >
+                            </label>
+
+                            <label>
+                                Meeting point type
+                                <select
+                                    name="meetingPointType"
+                                >
+                                    ${[
+                                        "unknown",
+                                        "campus",
+                                        "off-campus",
+                                        "online"
+                                    ].map(
+                                        value => `
+                                            <option
+                                                value="${value}"
+                                                ${
+                                                    event.meeting_point_type === value
+                                                        ? "selected"
+                                                        : ""
+                                                }
+                                            >
+                                                ${value}
+                                            </option>
+                                        `
+                                    ).join("")}
+                                </select>
+                            </label>
+
+                            <label>
+                                Meeting time
+                                <input
+                                    type="time"
+                                    name="meetingTime"
+                                    value="${escapeHtml(
+                                        event.meeting_time
+                                            ? event.meeting_time.slice(0, 5)
+                                            : ""
+                                    )}"
+                                >
+                            </label>
+
+                            <label>
+                                Description
+                                <textarea
+                                    name="description"
+                                >${escapeHtml(
+                                    event.description || ""
+                                )}</textarea>
+                            </label>
+
+                            <div class="discord-event-edit-actions">
+                                <button
+                                    type="submit"
+                                >
+                                    Save
+                                </button>
+
+                                <button
+                                    type="button"
+                                    data-discord-event-edit-cancel
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+
                         <div class="discord-event-actions">
 
                             <button
@@ -932,15 +1108,14 @@ async function decideDiscordItem(
     renderDiscordEvents();
 }
 
-async function saveDiscordEventDetails(
-    messageId,
+async function saveDiscordItemDetails(
+    itemId,
     details
 ) {
-
     const response =
         await fetch(
             API +
-            "/discord-events/details",
+                "/discord-items/details",
             {
                 method: "PUT",
 
@@ -955,7 +1130,7 @@ async function saveDiscordEventDetails(
 
                 body:
                     JSON.stringify({
-                        messageId,
+                        itemId,
 
                         title:
                             details.title,
@@ -990,30 +1165,18 @@ async function saveDiscordEventDetails(
             }
         );
 
-
     if (!response.ok) {
-
         throw new Error(
-            "Discord event update failed: " +
+            "Discord item update failed: " +
             response.status
         );
     }
 
-
-    const data =
-        await fetchDiscordEvents();
-
-    discordEvents =
-        data.events;
-
-    rejectedDiscordEvents =
-        data.rejectedEvents;
-
+    discordItems =
+        await fetchDiscordItems();
 
     renderDiscordEvents();
-    renderRejectedDiscordEvents();
 }
-
 
 document
     .getElementById(
@@ -1177,8 +1340,10 @@ document
             event.preventDefault();
 
 
-            const messageId =
-                form.dataset.messageId;
+            const itemId =
+                Number(
+                    form.dataset.itemId
+                );
 
             const formData =
                 new FormData(
@@ -1198,8 +1363,8 @@ document
 
             try {
 
-                await saveDiscordEventDetails(
-                    messageId,
+                await saveDiscordItemDetails(
+                    itemId,
                     {
                         title:
                             formData.get(
