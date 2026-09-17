@@ -444,6 +444,15 @@ async function fetchDiscordItems() {
     return data.items || [];
 }
 
+function getCanonicalDiscordEvents() {
+
+    return discordItems.filter(
+        item =>
+            item.item_type === "event" &&
+            item.status === "candidate"
+    );
+}
+
 
 function formatDiscordEventDate(event) {
 
