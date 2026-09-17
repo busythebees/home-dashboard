@@ -484,7 +484,10 @@ function getCanonicalDiscordEvents() {
     return discordItems.filter(
         item =>
             item.item_type === "event" &&
-            item.status === "candidate"
+            (
+                item.status === "candidate" ||
+                item.status === "needs-review"
+            )
     );
 }
 
