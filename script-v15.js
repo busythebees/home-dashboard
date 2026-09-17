@@ -79,6 +79,11 @@ let discordMessages = [];
 let discordEvents = [];
 let rejectedDiscordEvents = [];
 
+// Canonical Discord extraction.
+// Loaded alongside the legacy event pipeline
+// during migration.
+let discordItems = [];
+
 let rejectedDiscordSort =
     "rejected";
 
@@ -404,6 +409,39 @@ async function fetchDiscordEvents() {
         rejectedEvents:
             data.rejectedEvents || []
     };
+}
+
+async function fetchDiscordItems() {
+
+    if (!session) {
+        return [];
+    }
+
+    const response =
+        await fetch(
+            API + "/discord-items?_=" +
+                Date.now(),
+            {
+                cache: "no-store",
+
+                headers: {
+                    Authorization:
+                        "Bearer " + session
+                }
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            "Discord items load failed: " +
+            response.status
+        );
+    }
+
+    const data =
+        await response.json();
+
+    return data.items || [];
 }
 
 
@@ -1682,6 +1720,9 @@ async function refreshCollector() {
 
         rejectedDiscordEvents =
             discordEventData.rejectedEvents;
+
+        discordItems =
+            await fetchDiscordItems();
 
         if (!data) {
             collectorHealth = null;
