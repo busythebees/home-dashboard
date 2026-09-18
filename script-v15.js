@@ -76,8 +76,6 @@ let upcomingDaysShown = 2;
 
 let collectorHealth = null;
 let discordMessages = [];
-let discordEvents = [];
-let rejectedDiscordEvents = [];
 
 // Canonical Discord extraction.
 // Loaded alongside the legacy event pipeline
