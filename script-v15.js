@@ -5349,11 +5349,6 @@ const acceptedEventsView =
         "accepted-events-view"
     );
 
-const dashboardView =
-    document.getElementById(
-        "dashboard-view"
-    );
-
 
 if (
     openAcceptedEventsButton &&
