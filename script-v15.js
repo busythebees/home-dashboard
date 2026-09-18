@@ -1677,15 +1677,6 @@ async function refreshCollector() {
         const data =
             await fetchCollectorStatus();
 
-        const discordEventData =
-            await fetchDiscordEvents();
-
-        discordEvents =
-            discordEventData.events;
-
-        rejectedDiscordEvents =
-            discordEventData.rejectedEvents;
-
         discordItems =
             await fetchDiscordItems();
 
