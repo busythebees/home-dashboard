@@ -422,6 +422,7 @@ button {
 }
 
 .settings-icon-button,
+.accepted-events-button,
 .settings-close-button {
     display: flex;
     align-items: center;
@@ -442,12 +443,14 @@ button {
     cursor: pointer;
 }
 
-.settings-icon-button svg {
+.settings-icon-button svg,
+.accepted-events-button svg {
     width: 23px;
     height: 23px;
 }
 
 .settings-icon-button:hover,
+.accepted-events-button:hover,
 .settings-close-button:hover {
     background:
         rgba(255, 255, 255, 0.08);
