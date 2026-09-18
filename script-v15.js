@@ -552,6 +552,162 @@ function formatDiscordEventTime(event) {
     );
 }
 
+function renderAcceptedDiscordEvents() {
+
+    const container =
+        document.getElementById(
+            "accepted-discord-events"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const events =
+        getCanonicalAcceptedDiscordEvents();
+
+    if (events.length === 0) {
+        container.innerHTML = `
+            <div class="card">
+                <p>No accepted events.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML =
+        events
+            .map(event => {
+
+                const source =
+                    DISCORD_CHANNELS[
+                        event.channel_id
+                    ];
+
+                const society =
+                    source?.society ||
+                    "Discord";
+
+                const logo =
+                    source?.logo || "";
+
+                return `
+                    <div
+                        class="
+                            card
+                            discord-event-card
+                            accepted-discord-event-card
+                        "
+                    >
+
+                        <div class="discord-event-header">
+
+                            ${
+                                logo
+                                    ? `
+                                        <img
+                                            class="discord-society-logo"
+                                            src="${logo}"
+                                            alt=""
+                                        >
+                                    `
+                                    : ""
+                            }
+
+                            <div class="discord-society-name">
+                                ${escapeHtml(society)}
+                            </div>
+
+                        </div>
+
+                        <div class="discord-event-title">
+                            ${escapeHtml(
+                                event.title ||
+                                "Untitled event"
+                            )}
+                        </div>
+
+                        <div class="discord-event-details">
+
+                            <div>
+                                ${escapeHtml(
+                                    formatDiscordEventDate(
+                                        event
+                                    )
+                                )}
+                            </div>
+
+                            <div>
+                                ${escapeHtml(
+                                    formatDiscordEventTime(
+                                        event
+                                    )
+                                )}
+                            </div>
+
+                            ${
+                                event.location
+                                    ? `
+                                        <div>
+                                            ${escapeHtml(
+                                                event.location
+                                            )}
+                                        </div>
+                                    `
+                                    : ""
+                            }
+
+                            ${
+                                event.meeting_point
+                                    ? `
+                                        <div>
+                                            Meeting point:
+                                            ${escapeHtml(
+                                                event.meeting_point
+                                            )}
+                                            ${
+                                                event.meeting_time
+                                                    ? ` at ${escapeHtml(
+                                                        event.meeting_time.slice(
+                                                            0,
+                                                            5
+                                                        )
+                                                    )}`
+                                                    : ""
+                                            }
+                                        </div>
+                                    `
+                                    : ""
+                            }
+
+                        </div>
+
+                        ${
+                            event.description
+                                ? `
+                                    <div class="discord-event-description">
+                                        ${escapeHtml(
+                                            event.description
+                                        )}
+                                    </div>
+                                `
+                                : ""
+                        }
+
+                        <button
+                            type="button"
+                            class="discord-event-reject"
+                            data-no-longer-going
+                            data-item-id="${event.id}"
+                        >
+                            I no longer want to go
+                        </button>
+
+                    </div>
+                `;
+            })
+            .join("");
+}
 
 function renderDiscordEvents() {
 
@@ -5175,5 +5331,76 @@ setInterval(
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register(
         "service-worker.js"
+    );
+}
+
+const openAcceptedEventsButton =
+    document.getElementById(
+        "open-accepted-events"
+    );
+
+const closeAcceptedEventsButton =
+    document.getElementById(
+        "close-accepted-events"
+    );
+
+const acceptedEventsView =
+    document.getElementById(
+        "accepted-events-view"
+    );
+
+const dashboardView =
+    document.getElementById(
+        "dashboard-view"
+    );
+
+
+if (
+    openAcceptedEventsButton &&
+    acceptedEventsView &&
+    dashboardView
+) {
+    openAcceptedEventsButton.addEventListener(
+        "click",
+        async () => {
+
+            acceptedEventsView.hidden =
+                false;
+
+            dashboardView.hidden =
+                true;
+
+            try {
+                acceptedDiscordItems =
+                    await fetchAcceptedDiscordItems();
+
+                renderAcceptedDiscordEvents();
+
+            } catch (error) {
+                console.error(
+                    "Accepted events load failed",
+                    error
+                );
+            }
+        }
+    );
+}
+
+
+if (
+    closeAcceptedEventsButton &&
+    acceptedEventsView &&
+    dashboardView
+) {
+    closeAcceptedEventsButton.addEventListener(
+        "click",
+        () => {
+
+            acceptedEventsView.hidden =
+                true;
+
+            dashboardView.hidden =
+                false;
+        }
     );
 }
