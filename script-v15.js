@@ -373,45 +373,6 @@ function formatDiscordMessageTime(
 // DISCORD EVENT CANDIDATES
 // =========================
 
-async function fetchDiscordEvents() {
-
-    if (!session) {
-        return [];
-    }
-
-    const response =
-        await fetch(
-            API + "/discord-events?_=" +
-                Date.now(),
-            {
-                cache: "no-store",
-
-                headers: {
-                    Authorization:
-                        "Bearer " + session
-                }
-            }
-        );
-
-    if (!response.ok) {
-        throw new Error(
-            "Discord events load failed: " +
-            response.status
-        );
-    }
-
-    const data =
-        await response.json();
-
-    return {
-        events:
-            data.events || [],
-
-        rejectedEvents:
-            data.rejectedEvents || []
-    };
-}
-
 async function fetchDiscordItems() {
 
     if (!session) {
