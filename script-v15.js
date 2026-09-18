@@ -5381,6 +5381,60 @@ if (
     );
 }
 
+document
+    .getElementById(
+        "accepted-discord-events"
+    )
+    .addEventListener(
+        "click",
+        async event => {
+
+            const button =
+                event.target.closest(
+                    "[data-no-longer-going]"
+                );
+
+            if (!button) {
+                return;
+            }
+
+            const itemId =
+                Number(
+                    button.dataset.itemId
+                );
+
+            if (
+                !Number.isInteger(itemId) ||
+                itemId <= 0
+            ) {
+                return;
+            }
+
+            button.disabled = true;
+
+            try {
+
+                await decideDiscordItem(
+                    itemId,
+                    "rejected"
+                );
+
+                acceptedDiscordItems =
+                    await fetchAcceptedDiscordItems();
+
+                renderAcceptedDiscordEvents();
+
+            } catch (error) {
+
+                console.error(
+                    "Accepted event withdrawal failed",
+                    error
+                );
+
+                button.disabled = false;
+            }
+        }
+    );
 
 if (
     closeAcceptedEventsButton &&
