@@ -530,8 +530,7 @@ function renderDiscordEvents() {
         getCanonicalDiscordEvents();
 
     if (
-        canonicalEvents.length === 0 &&
-        rejectedDiscordEvents.length === 0
+        canonicalEvents.length === 0
     ) {
         section.hidden = true;
         container.innerHTML = "";
