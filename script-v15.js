@@ -82,6 +82,7 @@ let discordMessages = [];
 // during migration.
 let discordItems = [];
 let rejectedDiscordItems = [];
+let acceptedDiscordItems = [];
 
 let rejectedDiscordSort =
     "rejected";
@@ -436,6 +437,50 @@ async function fetchRejectedDiscordItems() {
         await response.json();
 
     return data.items || [];
+}
+
+async function fetchAcceptedDiscordItems() {
+
+    if (!session) {
+        return [];
+    }
+
+    const response =
+        await fetch(
+            API +
+                "/discord-items?status=accepted&_=" +
+                Date.now(),
+            {
+                cache: "no-store",
+
+                headers: {
+                    Authorization:
+                        "Bearer " + session
+                }
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            "Accepted Discord items load failed: " +
+            response.status
+        );
+    }
+
+    const data =
+        await response.json();
+
+    return data.items || [];
+}
+
+
+function getCanonicalAcceptedDiscordEvents() {
+
+    return acceptedDiscordItems.filter(
+        item =>
+            item.item_type === "event" &&
+            item.status === "accepted"
+    );
 }
 
 function getCanonicalDiscordEvents() {
