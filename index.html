@@ -36,6 +36,36 @@
 
                 <button
                     type="button"
+                    id="open-accepted-events"
+                    class="accepted-events-button"
+                    aria-label="Accepted events"
+                    title="Accepted events"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M8 2v3M16 2v3M3.5 9h17M5 4h14a1.5 1.5 0 0 1 1.5 1.5v14A1.5 1.5 0 0 1 19 21H5a1.5 1.5 0 0 1-1.5-1.5v-14A1.5 1.5 0 0 1 5 4Z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="m8 15 2.3 2.3L16 11.5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                    </svg>
+                </button>
+
+                <button
+                    type="button"
                     id="open-settings"
                     class="settings-icon-button"
                     aria-label="Open settings"
@@ -355,6 +385,33 @@
                     </div>
                 </div>
             </section>
+        </div>
+
+        <div id="accepted-events-view" hidden>
+
+            <div class="accepted-events-header">
+
+                <h1>Accepted Events</h1>
+
+                <button
+                    type="button"
+                    id="close-accepted-events"
+                    class="settings-close-button"
+                    aria-label="Close accepted events"
+                >
+                    ×
+                </button>
+
+            </div>
+
+            <section>
+                <div id="accepted-discord-events">
+                    <div class="card">
+                        <p>Loading accepted events...</p>
+                    </div>
+                </div>
+            </section>
+
         </div>
 
         <div id="settings-view" hidden>
