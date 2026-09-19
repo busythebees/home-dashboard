@@ -1177,6 +1177,57 @@ function formatDiscordSourceMessages(event) {
     `;
 }
 
+function formatDiscordActions(event) {
+
+    let actions = [];
+
+    try {
+        actions =
+            JSON.parse(
+                event.actions || "[]"
+            );
+    } catch (error) {
+        console.error(
+            "Invalid Discord actions",
+            error
+        );
+
+        return "";
+    }
+
+    if (
+        !Array.isArray(actions) ||
+        actions.length === 0
+    ) {
+        return "";
+    }
+
+    return `
+        <div class="discord-actions">
+            ${
+                actions
+                    .map(
+                        action => `
+                            <a
+                                class="discord-action-button"
+                                href="${escapeHtml(
+                                    action.url
+                                )}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                ${escapeHtml(
+                                    action.label
+                                )}
+                            </a>
+                        `
+                    )
+                    .join("")
+            }
+        </div>
+    `;
+}
+
 function renderAcceptedDiscordEvents() {
 
     const container =
@@ -1321,7 +1372,10 @@ function renderAcceptedDiscordEvents() {
                                 : ""
                         }
 
-                        ${formatDiscordSourceMessages(event)}
+                        <div class="discord-card-actions">
+                            ${formatDiscordSourceMessages(event)}
+                            ${formatDiscordActions(event)}
+                        </div>
 
                         <button
                             type="button"
@@ -1525,7 +1579,10 @@ function renderDiscordEvents() {
                                 : ""
                         }
 
-                        ${formatDiscordSourceMessages(event)}
+                        <div class="discord-card-actions">
+                            ${formatDiscordSourceMessages(event)}
+                            ${formatDiscordActions(event)}
+                        </div>
 
                         <button
                             type="button"

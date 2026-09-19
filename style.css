@@ -1614,3 +1614,51 @@ button:disabled {
     .discord-original-announcement-content {
     margin-top: 0;
 }
+
+.discord-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-top: 12px;
+
+    flex-wrap: wrap;
+}
+
+.discord-card-actions
+    .discord-original-announcement {
+    margin-top: 0;
+}
+
+.discord-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    flex-wrap: wrap;
+}
+
+.discord-action-button {
+    display: inline-flex;
+    align-items: center;
+
+    width: fit-content;
+
+    padding: 8px 14px;
+
+    border: 1px solid
+        rgba(255, 255, 255, 0.12);
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+
+    color: inherit;
+    text-decoration: none;
+
+    font-size: 0.9rem;
+    font-weight: 500;
+
+    cursor: pointer;
+}
