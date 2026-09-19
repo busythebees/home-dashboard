@@ -552,6 +552,139 @@ function formatDiscordEventTime(event) {
     );
 }
 
+function parseDiscordItinerary(value) {
+
+    if (!value) {
+        return null;
+    }
+
+    try {
+        return typeof value === "string"
+            ? JSON.parse(value)
+            : value;
+    } catch {
+        return null;
+    }
+}
+
+
+function formatJourneyClockTime(value) {
+
+    if (!value) {
+        return "";
+    }
+
+    const date =
+        new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return "";
+    }
+
+    return date.toLocaleTimeString(
+        [],
+        {
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+}
+
+
+function formatAcceptedEventTravel(event) {
+
+    const itinerary =
+        parseDiscordItinerary(
+            event.direct_itinerary_json
+        );
+
+    if (
+        !itinerary ||
+        !Array.isArray(itinerary.legs) ||
+        itinerary.legs.length === 0
+    ) {
+        return "";
+    }
+
+    const leaveTime =
+        formatJourneyClockTime(
+            itinerary.start_time
+        );
+
+    const arrivalTime =
+        formatJourneyClockTime(
+            itinerary.end_time
+        );
+
+    const steps =
+        itinerary.legs
+            .map(leg => {
+
+                const mode =
+                    String(
+                        leg.mode || ""
+                    ).toUpperCase();
+
+                const destination =
+                    leg.to?.name || "";
+
+                if (mode === "WALK") {
+                    return `
+                        <div class="accepted-travel-step">
+                            Walk → ${escapeHtml(destination)}
+                        </div>
+                    `;
+                }
+
+                const service =
+                    leg.route?.shortName ||
+                    leg.route?.longName ||
+                    mode;
+
+                return `
+                    <div class="accepted-travel-step">
+                        ${escapeHtml(service)}
+                        → ${escapeHtml(destination)}
+                    </div>
+                `;
+            })
+            .join("");
+
+    return `
+        <div class="accepted-event-travel">
+
+            <div class="accepted-event-travel-title">
+                Travel
+            </div>
+
+            ${
+                leaveTime
+                    ? `
+                        <div class="accepted-travel-time">
+                            Leave ${escapeHtml(leaveTime)}
+                        </div>
+                    `
+                    : ""
+            }
+
+            <div class="accepted-travel-steps">
+                ${steps}
+            </div>
+
+            ${
+                arrivalTime
+                    ? `
+                        <div class="accepted-travel-arrival">
+                            Arrive ~${escapeHtml(arrivalTime)}
+                        </div>
+                    `
+                    : ""
+            }
+
+        </div>
+    `;
+}
+
 function renderAcceptedDiscordEvents() {
 
     const container =
@@ -681,6 +814,8 @@ function renderAcceptedDiscordEvents() {
                             }
 
                         </div>
+
+                        ${formatAcceptedEventTravel(event)}
 
                         ${
                             event.description
