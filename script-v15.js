@@ -1274,11 +1274,7 @@ function renderAcceptedDiscordEvents() {
                                             View original announcement
                                         </summary>
 
-                                        <div class="discord-original-announcement-content">
-                                            ${escapeHtml(
-                                                event.original_announcement
-                                            )}
-                                        </div>
+                                        <div class="discord-original-announcement-content">${escapeHtml(event.original_announcement)}</div>
 
                                     </details>
                                 `
@@ -1496,11 +1492,7 @@ function renderDiscordEvents() {
                                             View original announcement
                                         </summary>
 
-                                        <div class="discord-original-announcement-content">
-                                            ${escapeHtml(
-                                                event.original_announcement
-                                            )}
-                                        </div>
+                                        <div class="discord-original-announcement-content">${escapeHtml(event.original_announcement)}</div>
 
                                     </details>
                                 `
