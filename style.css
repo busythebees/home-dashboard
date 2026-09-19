@@ -1536,53 +1536,6 @@ button:disabled {
     margin-top: 12px;
 }
 
-.discord-original-announcement summary {
-    display: inline-flex;
-    align-items: center;
-
-    width: fit-content;
-
-    padding: 8px 14px;
-
-    border: 1px solid
-        rgba(255, 255, 255, 0.12);
-
-    border-radius: 12px;
-
-    background:
-        rgba(255, 255, 255, 0.035);
-
-    cursor: pointer;
-
-    font-size: 0.9rem;
-    font-weight: 500;
-
-    user-select: none;
-
-    list-style: none;
-}
-
-.discord-original-announcement summary::-webkit-details-marker {
-    display: none;
-}
-
-.discord-original-announcement summary::before {
-    content: "›";
-
-    margin-right: 8px;
-
-    font-size: 1.15rem;
-    line-height: 1;
-
-    transition:
-        transform 0.15s ease;
-}
-
-.discord-original-announcement[open]
-    summary::before {
-    transform: rotate(90deg);
-}
-
 .discord-original-announcement-content {
     margin-top: 10px;
 
@@ -1663,27 +1616,57 @@ button:disabled {
     cursor: pointer;
 }
 
-.discord-card-actions
-    .discord-original-announcement[open] {
-    display: contents;
+.discord-original-announcement-toggle {
+    display: inline-flex;
+    align-items: center;
+
+    width: fit-content;
+
+    padding: 8px 14px;
+
+    border: 1px solid
+        rgba(255, 255, 255, 0.12);
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+
+    color: inherit;
+
+    cursor: pointer;
+
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+
+    text-align: left;
 }
 
-.discord-card-actions
-    .discord-original-announcement[open]
-    > summary {
-    order: 0;
+.discord-original-announcement-toggle::before {
+    content: "›";
+
+    margin-right: 8px;
+
+    font-size: 1.15rem;
+    line-height: 1;
+
+    transition:
+        transform 0.15s ease;
 }
 
-.discord-card-actions
-    .discord-original-announcement[open]
-    > .discord-original-announcement-messages {
-    order: 2;
-
-    flex-basis: 100%;
-    width: 100%;
+.discord-original-announcement-toggle.open::before {
+    transform: rotate(90deg);
 }
 
-.discord-card-actions
-    .discord-actions {
-    order: 1;
+.discord-original-announcement-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    margin-top: 10px;
+}
+
+.discord-original-announcement-messages[hidden] {
+    display: none;
 }

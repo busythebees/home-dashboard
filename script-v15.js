@@ -1137,14 +1137,20 @@ function formatDiscordSourceMessages(event) {
             error
         );
 
-        return "";
+        return {
+            summary: "",
+            content: ""
+        };
     }
 
     if (
         !Array.isArray(messages) ||
         messages.length === 0
     ) {
-        return "";
+        return {
+            summary: "",
+            content: ""
+        };
     }
 
     const label =
@@ -1152,14 +1158,21 @@ function formatDiscordSourceMessages(event) {
             ? "View original announcement"
             : `View original announcements (${messages.length})`;
 
-    return `
-        <details class="discord-original-announcement">
-
-            <summary>
+    return {
+        summary: `
+            <button
+                type="button"
+                class="discord-original-announcement-toggle"
+            >
                 ${escapeHtml(label)}
-            </summary>
+            </button>
+        `,
 
-            <div class="discord-original-announcement-messages">
+        content: `
+            <div
+                class="discord-original-announcement-messages"
+                hidden
+            >
                 ${
                     messages
                         .map(
@@ -1172,9 +1185,8 @@ function formatDiscordSourceMessages(event) {
                         .join("")
                 }
             </div>
-
-        </details>
-    `;
+        `
+    };
 }
 
 function formatDiscordActions(event) {
@@ -1266,6 +1278,11 @@ function renderAcceptedDiscordEvents() {
 
                 const logo =
                     source?.logo || "";
+
+                const sourceMessages =
+                    formatDiscordSourceMessages(
+                        event
+                    );
 
                 return `
                     <div
@@ -1373,9 +1390,11 @@ function renderAcceptedDiscordEvents() {
                         }
 
                         <div class="discord-card-actions">
-                            ${formatDiscordSourceMessages(event)}
+                            ${sourceMessages.summary}
                             ${formatDiscordActions(event)}
                         </div>
+
+                        ${sourceMessages.content}
 
                         <button
                             type="button"
@@ -1445,6 +1464,11 @@ function renderDiscordEvents() {
                 const needsReview =
                     event.status ===
                     "needs-review";
+
+                const sourceMessages =
+                    formatDiscordSourceMessages(
+                        event
+                    );
 
                 return `
                     <div
@@ -1580,9 +1604,11 @@ function renderDiscordEvents() {
                         }
 
                         <div class="discord-card-actions">
-                            ${formatDiscordSourceMessages(event)}
+                            ${sourceMessages.summary}
                             ${formatDiscordActions(event)}
                         </div>
+
+                        ${sourceMessages.content}
 
                         <button
                             type="button"
@@ -6072,6 +6098,50 @@ if (
         }
     );
 }
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const button =
+            event.target.closest(
+                ".discord-original-announcement-toggle"
+            );
+
+        if (!button) {
+            return;
+        }
+
+        const card =
+            button.closest(
+                ".discord-event-card"
+            );
+
+        if (!card) {
+            return;
+        }
+
+        const messages =
+            card.querySelector(
+                ".discord-original-announcement-messages"
+            );
+
+        if (!messages) {
+            return;
+        }
+
+        const opening =
+            messages.hidden;
+
+        messages.hidden =
+            !opening;
+
+        button.classList.toggle(
+            "open",
+            opening
+        );
+    }
+);
 
 document
     .getElementById(
