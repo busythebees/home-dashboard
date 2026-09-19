@@ -802,6 +802,80 @@ function formatAcceptedEventTravel(event) {
     `;
 }
 
+function getActiveLiveTravelEvent(
+    now = new Date()
+) {
+
+    const candidates =
+        getCanonicalAcceptedDiscordEvents()
+            .map(event => {
+
+                const itinerary =
+                    parseDiscordItinerary(
+                        event.direct_itinerary_json
+                    );
+
+                if (
+                    !itinerary ||
+                    !itinerary.start_time ||
+                    !event.event_date ||
+                    !event.start_time
+                ) {
+                    return null;
+                }
+
+                const leaveTime =
+                    new Date(
+                        itinerary.start_time
+                    );
+
+                const eventStart =
+                    new Date(
+                        `${event.event_date}T${event.start_time}`
+                    );
+
+                if (
+                    Number.isNaN(
+                        leaveTime.getTime()
+                    ) ||
+                    Number.isNaN(
+                        eventStart.getTime()
+                    )
+                ) {
+                    return null;
+                }
+
+                const showFrom =
+                    new Date(
+                        leaveTime.getTime() -
+                        60 * 60 * 1000
+                    );
+
+                if (
+                    now < showFrom ||
+                    now >= eventStart
+                ) {
+                    return null;
+                }
+
+                return {
+                    event,
+                    itinerary,
+                    leaveTime,
+                    eventStart,
+                    showFrom
+                };
+            })
+            .filter(Boolean)
+            .sort(
+                (a, b) =>
+                    a.leaveTime -
+                    b.leaveTime
+            );
+
+    return candidates[0] || null;
+}
+
 function renderAcceptedDiscordEvents() {
 
     const container =
