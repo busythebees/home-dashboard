@@ -802,6 +802,238 @@ function formatAcceptedEventTravel(event) {
     `;
 }
 
+function renderLiveTravel(
+    now = new Date()
+) {
+
+    const section =
+        document.getElementById(
+            "live-travel-section"
+        );
+
+    const container =
+        document.getElementById(
+            "live-travel"
+        );
+
+    if (!section || !container) {
+        return;
+    }
+
+    const active =
+        getActiveLiveTravelEvent(now);
+
+    if (!active) {
+        section.hidden = true;
+        container.innerHTML = "";
+        return;
+    }
+
+    const {
+        event,
+        itinerary,
+        leaveTime
+    } = active;
+
+    const walkIcon = `
+        <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            class="accepted-travel-icon"
+        >
+            <circle cx="12" cy="4" r="2"></circle>
+            <path d="M10 22l1-7-2-3"></path>
+            <path d="M14 22l-1-7 2-4"></path>
+            <path d="M9 12l2-5 4 2 2 4"></path>
+        </svg>
+    `;
+
+    const busIcon = `
+        <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            class="accepted-travel-icon"
+        >
+            <rect
+                x="5"
+                y="3"
+                width="14"
+                height="16"
+                rx="2"
+            ></rect>
+            <path d="M5 11h14"></path>
+            <path d="M8 19v2"></path>
+            <path d="M16 19v2"></path>
+            <circle cx="8" cy="16" r="1"></circle>
+            <circle cx="16" cy="16" r="1"></circle>
+        </svg>
+    `;
+
+    const steps =
+        itinerary.legs
+            .map(leg => {
+
+                const mode =
+                    String(
+                        leg.mode || ""
+                    ).toUpperCase();
+
+                const startTime =
+                    formatJourneyClockTime(
+                        leg.start?.estimated?.time ||
+                        leg.start?.scheduledTime
+                    );
+
+                const endTime =
+                    formatJourneyClockTime(
+                        leg.end?.estimated?.time ||
+                        leg.end?.scheduledTime
+                    );
+
+                let destination =
+                    leg.to?.name ||
+                    "destination";
+
+                if (
+                    destination === "Destination" &&
+                    event.location
+                ) {
+                    destination =
+                        event.location;
+                }
+
+                if (mode === "WALK") {
+
+                    const start =
+                        new Date(
+                            leg.start?.estimated?.time ||
+                            leg.start?.scheduledTime
+                        );
+
+                    const end =
+                        new Date(
+                            leg.end?.estimated?.time ||
+                            leg.end?.scheduledTime
+                        );
+
+                    const durationMinutes =
+                        !Number.isNaN(start.getTime()) &&
+                        !Number.isNaN(end.getTime())
+                            ? Math.max(
+                                1,
+                                Math.round(
+                                    (end - start) /
+                                    60000
+                                )
+                            )
+                            : null;
+
+                    return `
+                        <div class="accepted-travel-leg">
+
+                            <div class="accepted-travel-leg-time">
+                                ${escapeHtml(startTime)}
+                            </div>
+
+                            <div class="accepted-travel-leg-icon">
+                                ${walkIcon}
+                            </div>
+
+                            <div class="accepted-travel-leg-content">
+
+                                <div class="accepted-travel-leg-main">
+                                    Walk to ${escapeHtml(destination)}
+                                </div>
+
+                                <div class="accepted-travel-leg-meta">
+                                    ${
+                                        durationMinutes
+                                            ? `~${durationMinutes} min · `
+                                            : ""
+                                    }Arrive ~${escapeHtml(endTime)}
+                                </div>
+
+                            </div>
+
+                        </div>
+                    `;
+                }
+
+                const service =
+                    leg.route?.shortName ||
+                    leg.route?.longName ||
+                    mode;
+
+                const origin =
+                    leg.from?.name ||
+                    "stop";
+
+                return `
+                    <div class="accepted-travel-leg">
+
+                        <div class="accepted-travel-leg-time">
+                            ${escapeHtml(startTime)}
+                        </div>
+
+                        <div class="accepted-travel-leg-icon">
+                            ${busIcon}
+                        </div>
+
+                        <div class="accepted-travel-leg-content">
+
+                            <div class="accepted-travel-leg-main">
+                                Get the ${escapeHtml(service)}
+                            </div>
+
+                            <div class="accepted-travel-leg-meta">
+                                ${escapeHtml(origin)}
+                                →
+                                ${escapeHtml(destination)}
+                                · Arrive ~${escapeHtml(endTime)}
+                            </div>
+
+                        </div>
+
+                    </div>
+                `;
+            })
+            .join("");
+
+    container.innerHTML = `
+        <div class="card live-travel-card">
+
+            <div class="live-travel-label">
+                Travel
+            </div>
+
+            <div class="discord-event-title">
+                ${escapeHtml(
+                    event.title ||
+                    "Upcoming event"
+                )}
+            </div>
+
+            <div class="live-travel-leave">
+                Leave at
+                <strong>
+                    ${escapeHtml(
+                        formatJourneyClockTime(
+                            leaveTime
+                        )
+                    )}
+                </strong>
+            </div>
+
+            <div class="live-travel-steps">
+                ${steps}
+            </div>
+
+        </div>
+    `;
+
+    section.hidden = false;
+}
+
 function getActiveLiveTravelEvent(
     now = new Date()
 ) {
