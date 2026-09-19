@@ -1662,3 +1662,28 @@ button:disabled {
 
     cursor: pointer;
 }
+
+.discord-card-actions
+    .discord-original-announcement[open] {
+    display: contents;
+}
+
+.discord-card-actions
+    .discord-original-announcement[open]
+    > summary {
+    order: 0;
+}
+
+.discord-card-actions
+    .discord-original-announcement[open]
+    > .discord-original-announcement-messages {
+    order: 2;
+
+    flex-basis: 100%;
+    width: 100%;
+}
+
+.discord-card-actions
+    .discord-actions {
+    order: 1;
+}
