@@ -2094,6 +2094,9 @@ async function refreshCollector() {
         rejectedDiscordItems =
             await fetchRejectedDiscordItems();
 
+        acceptedDiscordItems =
+            await fetchAcceptedDiscordItems();
+
         if (!data) {
             collectorHealth = null;
             discordMessages = [];
