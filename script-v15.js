@@ -606,15 +606,42 @@ function formatAcceptedEventTravel(event) {
         return "";
     }
 
-    const leaveTime =
-        formatJourneyClockTime(
-            itinerary.start_time
-        );
 
-    const arrivalTime =
-        formatJourneyClockTime(
-            itinerary.end_time
-        );
+    const walkIcon = `
+        <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            class="accepted-travel-icon"
+        >
+            <circle cx="12" cy="4" r="2"></circle>
+            <path d="M10 22l1-7-2-3"></path>
+            <path d="M14 22l-1-7 2-4"></path>
+            <path d="M9 12l2-5 4 2 2 4"></path>
+        </svg>
+    `;
+
+
+    const busIcon = `
+        <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            class="accepted-travel-icon"
+        >
+            <rect
+                x="5"
+                y="3"
+                width="14"
+                height="16"
+                rx="2"
+            ></rect>
+            <path d="M5 11h14"></path>
+            <path d="M8 19v2"></path>
+            <path d="M16 19v2"></path>
+            <circle cx="8" cy="16" r="1"></circle>
+            <circle cx="16" cy="16" r="1"></circle>
+        </svg>
+    `;
+
 
     const steps =
         itinerary.legs
@@ -625,16 +652,75 @@ function formatAcceptedEventTravel(event) {
                         leg.mode || ""
                     ).toUpperCase();
 
+                const startTime =
+                    formatJourneyClockTime(
+                        leg.start?.estimated?.time ||
+                        leg.start?.scheduledTime
+                    );
+
+                const endTime =
+                    formatJourneyClockTime(
+                        leg.end?.estimated?.time ||
+                        leg.end?.scheduledTime
+                    );
+
                 const destination =
-                    leg.to?.name || "";
+                    leg.to?.name || "destination";
+
 
                 if (mode === "WALK") {
+
+                    const durationMinutes =
+                        leg.start?.scheduledTime &&
+                        leg.end?.scheduledTime
+                            ? Math.max(
+                                1,
+                                Math.round(
+                                    (
+                                        new Date(
+                                            leg.end.scheduledTime
+                                        ) -
+                                        new Date(
+                                            leg.start.scheduledTime
+                                        )
+                                    ) /
+                                    60000
+                                )
+                            )
+                            : null;
+
                     return `
-                        <div class="accepted-travel-step">
-                            Walk → ${escapeHtml(destination)}
+                        <div class="accepted-travel-leg">
+
+                            <div class="accepted-travel-leg-time">
+                                ${escapeHtml(startTime)}
+                            </div>
+
+                            <div class="accepted-travel-leg-icon">
+                                ${walkIcon}
+                            </div>
+
+                            <div class="accepted-travel-leg-content">
+
+                                <div class="accepted-travel-leg-main">
+                                    Walk to
+                                    ${escapeHtml(destination)}
+                                </div>
+
+                                <div class="accepted-travel-leg-meta">
+                                    ${
+                                        durationMinutes
+                                            ? `~${durationMinutes} min`
+                                            : `Arrive ~${escapeHtml(endTime)}`
+                                    }
+                                </div>
+
+                            </div>
+
                         </div>
                     `;
                 }
+
 
                 const service =
                     leg.route?.shortName ||
@@ -642,46 +728,57 @@ function formatAcceptedEventTravel(event) {
                     mode;
 
                 return `
-                    <div class="accepted-travel-step">
-                        ${escapeHtml(service)}
-                        → ${escapeHtml(destination)}
+                    <div class="accepted-travel-leg">
+
+                        <div class="accepted-travel-leg-time">
+                            ${escapeHtml(startTime)}
+                        </div>
+
+                        <div class="accepted-travel-leg-icon">
+                            ${busIcon}
+                        </div>
+
+                        <div class="accepted-travel-leg-content">
+
+                            <div class="accepted-travel-leg-main">
+                                ${escapeHtml(service)}
+                                →
+                                ${escapeHtml(destination)}
+                            </div>
+
+                            <div class="accepted-travel-leg-meta">
+                                Arrive ~${escapeHtml(endTime)}
+                            </div>
+
+                        </div>
+
                     </div>
                 `;
             })
             .join("");
 
+
     return `
-        <div class="accepted-event-travel">
+        <details class="accepted-event-travel">
 
-            <div class="accepted-event-travel-title">
-                Travel
-            </div>
+            <summary class="accepted-event-travel-summary">
 
-            ${
-                leaveTime
-                    ? `
-                        <div class="accepted-travel-time">
-                            Leave ${escapeHtml(leaveTime)}
-                        </div>
-                    `
-                    : ""
-            }
+                <span>Travel</span>
 
-            <div class="accepted-travel-steps">
+                <span
+                    class="accepted-event-travel-chevron"
+                    aria-hidden="true"
+                >
+                    ›
+                </span>
+
+            </summary>
+
+            <div class="accepted-event-travel-body">
                 ${steps}
             </div>
 
-            ${
-                arrivalTime
-                    ? `
-                        <div class="accepted-travel-arrival">
-                            Arrive ~${escapeHtml(arrivalTime)}
-                        </div>
-                    `
-                    : ""
-            }
-
-        </div>
+        </details>
     `;
 }
 
