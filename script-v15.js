@@ -1256,11 +1256,31 @@ function renderAcceptedDiscordEvents() {
                         ${
                             event.description
                                 ? `
-                                    <div class="discord-event-description">
-                                        ${escapeHtml(
-                                            event.description
-                                        )}
-                                    </div>
+                                        <div class="discord-event-description">
+                                            ${escapeHtml(
+                                                event.description
+                                            )}
+                                        </div>
+                                `
+                                : ""
+                        }
+
+                        ${
+                            event.original_announcement
+                                ? `
+                                    <details class="discord-original-announcement">
+
+                                        <summary>
+                                            View original announcement
+                                        </summary>
+
+                                        <div class="discord-original-announcement-content">
+                                            ${escapeHtml(
+                                                event.original_announcement
+                                            )}
+                                        </div>
+
+                                    </details>
                                 `
                                 : ""
                         }
@@ -1458,11 +1478,31 @@ function renderDiscordEvents() {
                         ${
                             event.description
                                 ? `
-                                    <div class="discord-event-description">
-                                        ${escapeHtml(
-                                            event.description
-                                        )}
-                                    </div>
+                                        <div class="discord-event-description">
+                                            ${escapeHtml(
+                                                event.description
+                                            )}
+                                        </div>
+                                `
+                                : ""
+                        }
+
+                        ${
+                            event.original_announcement
+                                ? `
+                                    <details class="discord-original-announcement">
+
+                                        <summary>
+                                            View original announcement
+                                        </summary>
+
+                                        <div class="discord-original-announcement-content">
+                                            ${escapeHtml(
+                                                event.original_announcement
+                                            )}
+                                        </div>
+
+                                    </details>
                                 `
                                 : ""
                         }
