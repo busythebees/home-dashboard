@@ -964,6 +964,10 @@ function renderLiveTravel(
                     leg.route?.longName ||
                     mode;
 
+                const headsign =
+                    leg.trip?.tripHeadsign ||
+                    "";
+
                 const origin =
                     leg.from?.name ||
                     "stop";
@@ -982,7 +986,11 @@ function renderLiveTravel(
                         <div class="accepted-travel-leg-content">
 
                             <div class="accepted-travel-leg-main">
-                                Get the ${escapeHtml(service)}
+                                Get the ${escapeHtml(service)}${
+                                    headsign
+                                        ? ` towards ${escapeHtml(headsign)}`
+                                        : ""
+                                }
                             </div>
 
                             <div class="accepted-travel-leg-meta">
