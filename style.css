@@ -1527,3 +1527,77 @@ button:disabled {
 
     opacity: 0.6;
 }
+
+/* =========================
+   ORIGINAL ANNOUNCEMENT
+   ========================= */
+
+.discord-original-announcement {
+    margin-top: 12px;
+}
+
+.discord-original-announcement summary {
+    display: inline-flex;
+    align-items: center;
+
+    width: fit-content;
+
+    padding: 8px 14px;
+
+    border: 1px solid
+        rgba(255, 255, 255, 0.12);
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+
+    cursor: pointer;
+
+    font-size: 0.9rem;
+    font-weight: 500;
+
+    user-select: none;
+
+    list-style: none;
+}
+
+.discord-original-announcement summary::-webkit-details-marker {
+    display: none;
+}
+
+.discord-original-announcement summary::before {
+    content: "›";
+
+    margin-right: 8px;
+
+    font-size: 1.15rem;
+    line-height: 1;
+
+    transition:
+        transform 0.15s ease;
+}
+
+.discord-original-announcement[open]
+    summary::before {
+    transform: rotate(90deg);
+}
+
+.discord-original-announcement-content {
+    margin-top: 10px;
+
+    padding: 12px 14px;
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+
+    color:
+        rgba(255, 255, 255, 0.78);
+
+    font-size: 0.9rem;
+    line-height: 1.45;
+
+    white-space: pre-wrap;
+}
