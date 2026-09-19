@@ -582,10 +582,11 @@ function formatJourneyClockTime(value) {
     }
 
     return date.toLocaleTimeString(
-        [],
+        "en-GB",
         {
             hour: "2-digit",
-            minute: "2-digit"
+            minute: "2-digit",
+            hour12: false
         }
     );
 }
@@ -664,8 +665,16 @@ function formatAcceptedEventTravel(event) {
                         leg.end?.scheduledTime
                     );
 
-                const destination =
+                let destination =
                     leg.to?.name || "destination";
+
+                if (
+                    destination === "Destination" &&
+                    event.location
+                ) {
+                    destination =
+                        event.location;
+                }
 
 
                 if (mode === "WALK") {
@@ -710,8 +719,19 @@ function formatAcceptedEventTravel(event) {
                                 <div class="accepted-travel-leg-meta">
                                     ${
                                         durationMinutes
-                                            ? `~${durationMinutes} min`
-                                            : `Arrive ~${escapeHtml(endTime)}`
+                                            ? (
+                                                `~${durationMinutes} min` +
+                                                (
+                                                    endTime
+                                                        ? ` · Arrive ~${escapeHtml(endTime)}`
+                                                        : ""
+                                                )
+                                            )
+                                            : (
+                                                endTime
+                                                    ? `Arrive ~${escapeHtml(endTime)}`
+                                                    : ""
+                                            )
                                     }
                                 </div>
 
