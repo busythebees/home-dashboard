@@ -1034,6 +1034,11 @@ function renderLiveTravel(
     section.hidden = false;
 }
 
+setInterval(
+    () => renderLiveTravel(),
+    60 * 1000
+);
+
 function getActiveLiveTravelEvent(
     now = new Date()
 ) {
@@ -2431,6 +2436,7 @@ async function refreshCollector() {
     renderDiscordEvents();
     renderRejectedDiscordEvents();
     renderDiscordMessages();
+    renderLiveTravel();
 }
 
 
