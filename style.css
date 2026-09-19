@@ -1601,3 +1601,16 @@ button:disabled {
 
     white-space: pre-wrap;
 }
+
+.discord-original-announcement-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    margin-top: 10px;
+}
+
+.discord-original-announcement-messages
+    .discord-original-announcement-content {
+    margin-top: 0;
+}

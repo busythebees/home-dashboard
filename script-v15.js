@@ -1121,6 +1121,62 @@ function getActiveLiveTravelEvent(
     return candidates[0] || null;
 }
 
+function formatDiscordSourceMessages(event) {
+
+    let messages = [];
+
+    try {
+        messages =
+            JSON.parse(
+                event.source_messages ||
+                "[]"
+            );
+    } catch (error) {
+        console.error(
+            "Invalid Discord source messages",
+            error
+        );
+
+        return "";
+    }
+
+    if (
+        !Array.isArray(messages) ||
+        messages.length === 0
+    ) {
+        return "";
+    }
+
+    const label =
+        messages.length === 1
+            ? "View original announcement"
+            : `View original announcements (${messages.length})`;
+
+    return `
+        <details class="discord-original-announcement">
+
+            <summary>
+                ${escapeHtml(label)}
+            </summary>
+
+            <div class="discord-original-announcement-messages">
+                ${
+                    messages
+                        .map(
+                            message => `
+                                <div class="discord-original-announcement-content">${escapeHtml(
+                                    message.content || ""
+                                )}</div>
+                            `
+                        )
+                        .join("")
+                }
+            </div>
+
+        </details>
+    `;
+}
+
 function renderAcceptedDiscordEvents() {
 
     const container =
@@ -1265,21 +1321,7 @@ function renderAcceptedDiscordEvents() {
                                 : ""
                         }
 
-                        ${
-                            event.original_announcement
-                                ? `
-                                    <details class="discord-original-announcement">
-
-                                        <summary>
-                                            View original announcement
-                                        </summary>
-
-                                        <div class="discord-original-announcement-content">${escapeHtml(event.original_announcement)}</div>
-
-                                    </details>
-                                `
-                                : ""
-                        }
+                        ${formatDiscordSourceMessages(event)}
 
                         <button
                             type="button"
@@ -1483,21 +1525,7 @@ function renderDiscordEvents() {
                                 : ""
                         }
 
-                        ${
-                            event.original_announcement
-                                ? `
-                                    <details class="discord-original-announcement">
-
-                                        <summary>
-                                            View original announcement
-                                        </summary>
-
-                                        <div class="discord-original-announcement-content">${escapeHtml(event.original_announcement)}</div>
-
-                                    </details>
-                                `
-                                : ""
-                        }
+                        ${formatDiscordSourceMessages(event)}
 
                         <button
                             type="button"
