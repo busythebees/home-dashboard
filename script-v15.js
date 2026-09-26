@@ -75,6 +75,8 @@ let upcomingDaysShown = 2;
 // =========================
 
 let collectorHealth = null;
+let systemHealth = null;
+let systemHealthApiAvailable = true;
 let discordMessages = [];
 
 // Canonical Discord extraction.
@@ -194,108 +196,42 @@ async function fetchCollectorStatus() {
 
 
 function getCollectorDisplayState() {
-
-    if (!collectorHealth) {
-        return "offline";
-    }
-
-    const updatedAt =
-        parseD1UtcTimestamp(
-            collectorHealth.updated_at
-        );
-
-    if (!updatedAt) {
-        return "offline";
-    }
-
-    const heartbeatAge =
-        Date.now() -
-        updatedAt.getTime();
-
-    /*
-    * Heartbeat is sent every 30 seconds.
-    * Missing three cycles means offline.
-    */
-    if (
-        heartbeatAge >
-        90 * 1000
-    ) {
-        return "offline";
-    }
-
-    if (
-        collectorHealth.status !==
-        "healthy"
-    ) {
-        return "degraded";
-    }
-
-    return "healthy";
+    if (!systemHealthApiAvailable || !systemHealth) return "unavailable";
+    return ["healthy", "degraded", "blocked"].includes(systemHealth.overall_state)
+        ? systemHealth.overall_state
+        : "unavailable";
 }
 
+function systemHealthReasonLabel(reason) {
+    const labels = {
+        "report-stale": "Report delayed", "report-missing": "Report missing",
+        "vpn-unavailable": "VPN unavailable", "vesktop-unavailable": "Vesktop unavailable",
+        "collector-unavailable": "Collector unavailable", "outbox-backlog": "Outbox delayed",
+        "outbox-pressure": "Outbox nearing capacity", "outbox-full": "Outbox full",
+        "outbox-enqueue-rejected": "Outbox rejected an event", "outbox-corrupt": "Outbox metadata invalid",
+        "outbox-no-progress": "Outbox is not draining", "bridge-unavailable": "Bridge unavailable",
+        "bridge-poll-failed": "Bridge polling retrying", "forwarder-unavailable": "Forwarder unavailable",
+        "network-error": "Network retrying", "request-timeout": "Request timed out",
+        "bridge-retryable-response": "Bridge retrying", "cloudflare-retryable-response": "Worker retrying",
+        "concurrent-edit": "Edit retrying", "cursor-expired": "Cursor recovery required",
+        "missing-forwarder-state": "Forwarder state missing", "invalid-forwarder-state": "Forwarder state invalid",
+        "bridge-permanent-response": "Bridge rejected delivery", "cloudflare-permanent-response": "Worker rejected delivery",
+        "structured-content-too-large": "Structured content blocked", "terminal-processing-failure": "Processing failed",
+        "processing-recovery-overdue": "Processing recovery overdue", "processing-retry-pending": "Processing retry pending",
+        "recovery-repeated-failure": "Recovery repeatedly failed", "recovery-overdue": "Recovery overdue",
+        "recovery-pending": "Recovery pending", "scheduled-recovery-failure": "Scheduled recovery failed",
+        "scheduled-recovery-stale": "Recovery sweep delayed", "scheduled-recovery-missing": "Recovery sweep missing"
+    };
+    return labels[reason] || (reason ? "Attention required" : "OK");
+}
 
-function collectorStatusDescription() {
-
-    if (!collectorHealth) {
-        return "Collector offline";
-    }
-
-    const state =
-        getCollectorDisplayState();
-
-    const updatedAt =
-        parseD1UtcTimestamp(
-            collectorHealth.updated_at
-        );
-
-    const lastCheck =
-        updatedAt
-            ? updatedAt.toLocaleString()
-            : "Unknown";
-
-    if (state === "offline") {
-        return (
-            "Collector offline\n\n" +
-            "Last heartbeat: " +
-            lastCheck
-        );
-    }
-
-    return (
-        "Collector: " +
-        (
-            state === "healthy"
-                ? "Healthy"
-                : "Degraded"
-        ) +
-        "\n\n" +
-        "VPN: " +
-        (
-            collectorHealth.vpn_connected
-                ? "OK"
-                : "Down"
-        ) +
-        "\nDiscord: " +
-        (
-            collectorHealth.discord_running
-                ? "Running"
-                : "Down"
-        ) +
-        "\nBridge: " +
-        (
-            collectorHealth.bridge_running
-                ? "Running"
-                : "Down"
-        ) +
-        "\nForwarder: " +
-        (
-            collectorHealth.forwarder_running
-                ? "Running"
-                : "Down"
-        ) +
-        "\n\nLast heartbeat: " +
-        lastCheck
-    );
+function formatHealthAge(value) {
+    const date = parseD1UtcTimestamp(value);
+    if (!date) return "Never";
+    const seconds = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
+    if (seconds < 60) return `${seconds}s ago`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    return `${Math.floor(seconds / 3600)}h ago`;
 }
 
 
@@ -323,12 +259,9 @@ function renderCollectorStatus() {
         "collector-status-" +
         state;
 
-    const label =
-        state === "healthy"
-            ? "Collector healthy"
-            : state === "degraded"
-                ? "Collector degraded"
-                : "Collector offline";
+    const label = state === "healthy" ? "System healthy"
+        : state === "degraded" ? "System degraded; retrying"
+            : state === "blocked" ? "System blocked" : "Health unavailable";
 
     button.setAttribute(
         "aria-label",
@@ -336,6 +269,8 @@ function renderCollectorStatus() {
     );
 
     button.title = label;
+    const text = document.getElementById("collector-status-label");
+    if (text) text.textContent = label;
 }
 
 
@@ -405,7 +340,9 @@ async function fetchDiscordItems() {
     return data.items || [];
 }
 
-async function fetchRejectedDiscordItems() {
+async function fetchDiscordItemsByStatus(
+    status
+) {
 
     if (!session) {
         return [];
@@ -414,7 +351,9 @@ async function fetchRejectedDiscordItems() {
     const response =
         await fetch(
             API +
-                "/discord-items?status=rejected&_=" +
+                "/discord-items?status=" +
+                encodeURIComponent(status) +
+                "&_=" +
                 Date.now(),
             {
                 cache: "no-store",
@@ -428,7 +367,7 @@ async function fetchRejectedDiscordItems() {
 
     if (!response.ok) {
         throw new Error(
-            "Rejected Discord items load failed: " +
+            "Discord items load failed: " +
             response.status
         );
     }
@@ -439,38 +378,43 @@ async function fetchRejectedDiscordItems() {
     return data.items || [];
 }
 
-async function fetchAcceptedDiscordItems() {
 
-    if (!session) {
-        return [];
-    }
+function fetchRejectedDiscordItems() {
+    return fetchDiscordItemsByStatus(
+        "rejected"
+    );
+}
 
-    const response =
-        await fetch(
-            API +
-                "/discord-items?status=accepted&_=" +
-                Date.now(),
-            {
-                cache: "no-store",
 
-                headers: {
-                    Authorization:
-                        "Bearer " + session
-                }
-            }
-        );
+function fetchAcceptedDiscordItems() {
+    return fetchDiscordItemsByStatus(
+        "accepted"
+    );
+}
 
-    if (!response.ok) {
-        throw new Error(
-            "Accepted Discord items load failed: " +
-            response.status
-        );
-    }
 
-    const data =
-        await response.json();
+function deriveDiscordItemCollections(items) {
 
-    return data.items || [];
+    const allItems =
+        Array.isArray(items)
+            ? items
+            : [];
+
+    return {
+        allItems,
+
+        rejectedItems:
+            allItems.filter(
+                item =>
+                    item.status === "rejected"
+            ),
+
+        acceptedItems:
+            allItems.filter(
+                item =>
+                    item.status === "accepted"
+            )
+    };
 }
 
 
@@ -2550,22 +2494,44 @@ async function refreshCollector() {
         const data =
             await fetchCollectorStatus();
 
-        discordItems =
+        const fetchedDiscordItems =
             await fetchDiscordItems();
 
+        const collections =
+            deriveDiscordItemCollections(
+                fetchedDiscordItems
+            );
+
+        /*
+        * Commit all three collections together. If the
+        * single canonical-items request fails, the catch
+        * path retains the previous internally consistent
+        * snapshot rather than mixing new and stale subsets.
+        */
+        discordItems =
+            collections.allItems;
+
         rejectedDiscordItems =
-            await fetchRejectedDiscordItems();
+            collections.rejectedItems;
 
         acceptedDiscordItems =
-            await fetchAcceptedDiscordItems();
+            collections.acceptedItems;
 
         if (!data) {
             collectorHealth = null;
+            systemHealth = null;
+            systemHealthApiAvailable = false;
             discordMessages = [];
 
         } else {
             collectorHealth =
                 data.health || null;
+
+            systemHealth =
+                data.system_health || null;
+
+            systemHealthApiAvailable =
+                systemHealth !== null;
 
             discordMessages =
                 data.messages || [];
@@ -2581,6 +2547,8 @@ async function refreshCollector() {
         * already visible on screen.
         */
         collectorHealth = null;
+        systemHealth = null;
+        systemHealthApiAvailable = false;
     }
 
     renderCollectorStatus();
@@ -2610,105 +2578,61 @@ document
         "click",
         () => {
 
-            const health =
-                collectorHealth;
-
-            const state =
-                getCollectorDisplayState();
-
-            const updatedAt =
-                health
-                    ? parseD1UtcTimestamp(
-                        health.updated_at
-                    )
-                    : null;
-
-            const lastHeartbeat =
-                updatedAt
-                    ? updatedAt.toLocaleString(
-                        [],
-                        {
-                            dateStyle: "medium",
-                            timeStyle: "short"
-                        }
-                    )
+            const state = getCollectorDisplayState();
+            const statusLabel = state === "healthy" ? "System healthy"
+                : state === "degraded" ? "Degraded · retrying"
+                    : state === "blocked" ? "Blocked" : "Health unavailable";
+            const components = systemHealth?.components || [];
+            const componentRows = components.map(component => {
+                const reason = systemHealthReasonLabel(component.reason_code);
+                const referenceTime = component.last_success_at || component.last_report_at;
+                const metrics = Object.entries(component.metrics || {}).slice(0, 12)
+                    .map(([key, value]) => `<div><span>${escapeHtml(key.replaceAll("_", " "))}</span><span>${escapeHtml(String(value))}</span></div>`)
+                    .join("");
+                return `<details class="system-health-component system-health-${escapeHtml(component.state)}">
+                    <summary>
+                        <span>${escapeHtml(component.label || "Component")}</span>
+                        <span class="system-health-component-state">${escapeHtml(component.state)} · ${escapeHtml(reason)} · ${escapeHtml(formatHealthAge(referenceTime))}</span>
+                    </summary>
+                    <div class="system-health-detail-grid">
+                        <span>Alive</span><span>${component.alive === null ? "Unknown" : component.alive ? "Yes" : "No"}</span>
+                        <span>Progress</span><span>${escapeHtml(component.progress || "unknown")}</span>
+                        <span>Problem started</span><span>${escapeHtml(formatHealthAge(component.problem_started_at))}</span>
+                        <span>Last success</span><span>${escapeHtml(formatHealthAge(component.last_success_at))}</span>
+                        <span>Last progress</span><span>${escapeHtml(formatHealthAge(component.last_progress_at))}</span>
+                        <span>Retry count</span><span>${escapeHtml(String(component.retry_count || 0))}</span>
+                        <span>Automatic recovery</span><span>${component.automatic_recovery ? "Expected" : "No"}</span>
+                        <span>Intervention</span><span>${component.intervention_required ? "Required" : "Not required"}</span>
+                    </div>
+                    ${metrics ? `<div class="system-health-metrics">${metrics}</div>` : ""}
+                </details>`;
+            }).join("");
+            const incidentRows = (systemHealth?.recent_incidents || []).slice(0, 5).map(incident => {
+                const opened = parseD1UtcTimestamp(incident.opened_at);
+                const resolved = parseD1UtcTimestamp(incident.resolved_at);
+                const duration = opened && resolved
+                    ? Math.max(0, Math.round((resolved - opened) / 60000)) + "m"
                     : "Unknown";
-
-            const statusLabel =
-                state === "healthy"
-                    ? "Healthy"
-                    : state === "degraded"
-                        ? "Degraded"
-                        : "Offline";
+                return `<div class="system-health-incident">
+                    <span>${escapeHtml(incident.label || incident.component_id || "Component")}</span>
+                    <span>${escapeHtml(systemHealthReasonLabel(incident.reason_code))} · ${escapeHtml(duration)} · ${escapeHtml(formatHealthAge(incident.resolved_at))}</span>
+                </div>`;
+            }).join("");
 
             collectorStatusDetails.innerHTML = `
                 <div class="collector-dialog-overall">
-                    <span
-                        class="
-                            collector-status-dot
-                            collector-status-${state}
-                        "
-                    ></span>
-
-                    <strong>
-                        ${statusLabel}
-                    </strong>
+                    <span class="collector-status-dot collector-status-${state}"></span>
+                    <strong>${escapeHtml(statusLabel)}</strong>
                 </div>
-
                 <div class="collector-component-list">
-
-                    <div class="collector-component">
-                        <span>VPN</span>
-                        <span>
-                            ${
-                                health?.vpn_connected
-                                    ? "Connected"
-                                    : "Down"
-                            }
-                        </span>
-                    </div>
-
-                    <div class="collector-component">
-                        <span>Discord</span>
-                        <span>
-                            ${
-                                health?.discord_running
-                                    ? "Running"
-                                    : "Down"
-                            }
-                        </span>
-                    </div>
-
-                    <div class="collector-component">
-                        <span>Bridge</span>
-                        <span>
-                            ${
-                                health?.bridge_running
-                                    ? "Running"
-                                    : "Down"
-                            }
-                        </span>
-                    </div>
-
-                    <div class="collector-component">
-                        <span>Forwarder</span>
-                        <span>
-                            ${
-                                health?.forwarder_running
-                                    ? "Running"
-                                    : "Down"
-                            }
-                        </span>
-                    </div>
-
+                    ${componentRows || `<div class="system-health-empty">No backend health report is available.</div>`}
                 </div>
-
-                <div class="collector-last-check">
-                    Last heartbeat:
-                    ${escapeHtml(lastHeartbeat)}
+                <div class="system-health-incidents">
+                    <h4>Recently resolved</h4>
+                    ${incidentRows || `<div class="system-health-empty">No recent incidents.</div>`}
                 </div>
+                <div class="collector-last-check">Updated: ${escapeHtml(formatHealthAge(systemHealth?.generated_at))}</div>
             `;
-
             collectorStatusDialog.showModal();
         }
     );

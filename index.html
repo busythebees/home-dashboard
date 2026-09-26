@@ -25,13 +25,16 @@
                     type="button"
                     id="collector-status-button"
                     class="collector-status-button"
-                    aria-label="Collector status unknown"
-                    title="Collector status"
+                    aria-label="System health unknown"
+                    title="System health"
                 >
                     <span
                         id="collector-status-dot"
                         class="collector-status-dot collector-status-unknown"
                     ></span>
+                    <span id="collector-status-label" class="collector-status-label">
+                        Health unavailable
+                    </span>
                 </button>
 
                 <button
@@ -684,13 +687,13 @@
             <div class="collector-status-dialog-content">
 
                 <div class="collector-status-dialog-header">
-                    <h3>Collector status</h3>
+                    <h3>System health</h3>
 
                     <button
                         type="button"
                         id="collector-status-close"
                         class="collector-status-close"
-                        aria-label="Close collector status"
+                        aria-label="Close system health"
                     >
                         ×
                     </button>

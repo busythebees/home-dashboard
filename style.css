@@ -760,13 +760,20 @@ button {
     align-items: center;
     justify-content: center;
 
-    width: 24px;
+    min-width: 24px;
     height: 42px;
 
     padding: 0;
 
     background: transparent;
     cursor: pointer;
+    gap: 7px;
+}
+
+.collector-status-label {
+    color: #aaa;
+    font-size: 0.76rem;
+    white-space: nowrap;
 }
 
 
@@ -794,9 +801,13 @@ button {
 }
 
 
-.collector-status-offline,
-.collector-status-unknown {
+.collector-status-blocked {
     background: #d9534f;
+}
+
+.collector-status-unavailable,
+.collector-status-unknown {
+    background: #8a6767;
 }
 
 
@@ -838,7 +849,7 @@ button {
 #collector-status-dialog {
     width: min(
         calc(100% - 32px),
-        380px
+        520px
     );
 
     padding: 0;
@@ -928,6 +939,69 @@ button {
     justify-content: space-between;
 
     padding: 11px 0;
+}
+
+.system-health-component {
+    padding: 10px 0;
+}
+
+.system-health-component + .system-health-component {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.system-health-component summary {
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) minmax(0, 2fr);
+    gap: 10px;
+    cursor: pointer;
+}
+
+.system-health-component-state {
+    color: #aaa;
+    text-align: right;
+    font-size: 0.85rem;
+}
+
+.system-health-degraded summary { color: #e3b75d; }
+.system-health-blocked summary { color: #ed7773; }
+
+.system-health-detail-grid,
+.system-health-metrics > div,
+.system-health-incident {
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) minmax(0, 1fr);
+    gap: 8px;
+}
+
+.system-health-detail-grid {
+    margin: 12px 0 6px 18px;
+    color: #bbb;
+    font-size: 0.82rem;
+}
+
+.system-health-detail-grid span:nth-child(even),
+.system-health-metrics span:last-child,
+.system-health-incident span:last-child {
+    text-align: right;
+}
+
+.system-health-metrics {
+    margin-left: 18px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    color: #888;
+    font-size: 0.78rem;
+}
+
+.system-health-incidents h4 {
+    margin: 18px 0 8px;
+}
+
+.system-health-incident,
+.system-health-empty {
+    padding: 7px 0;
+    color: #999;
+    font-size: 0.82rem;
 }
 
 
