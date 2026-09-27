@@ -220,7 +220,11 @@ function systemHealthReasonLabel(reason) {
         "processing-recovery-overdue": "Processing recovery overdue", "processing-retry-pending": "Processing retry pending",
         "recovery-repeated-failure": "Recovery repeatedly failed", "recovery-overdue": "Recovery overdue",
         "recovery-pending": "Recovery pending", "scheduled-recovery-failure": "Scheduled recovery failed",
-        "scheduled-recovery-stale": "Recovery sweep delayed", "scheduled-recovery-missing": "Recovery sweep missing"
+        "scheduled-recovery-stale": "Recovery sweep delayed", "scheduled-recovery-missing": "Recovery sweep missing",
+        "otp-unreachable": "OpenTripPlanner unreachable", "otp-timeout": "OpenTripPlanner timed out",
+        "otp-http-error": "OpenTripPlanner API failed", "otp-invalid-response": "OpenTripPlanner response invalid",
+        "otp-routing-failed": "OpenTripPlanner routing failed", "otp-check-stale": "OpenTripPlanner check overdue",
+        "otp-not-configured": "OpenTripPlanner monitoring not configured"
     };
     return labels[reason] || (reason ? "Attention required" : "OK");
 }
