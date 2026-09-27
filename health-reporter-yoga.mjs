@@ -4,8 +4,9 @@ import path from "node:path";
 import {pathToFileURL} from "node:url";
 import {promisify} from "node:util";
 
+import {createOtpHealthMonitor, makeOtpNotConfiguredComponent} from "./otp-health.mjs";
+
 export const REPORT_INTERVAL_MS = 30_000;
-export const OTP_HEALTH_URL = "http://127.0.0.1:8080/otp/";
 export const LOCAL_HEALTH_MAX_BYTES = 64 * 1024;
 export const LOCAL_HEALTH_STALE_MS = 90_000;
 export const COLLECTOR_HEALTH_PATH = path.join(
@@ -102,30 +103,6 @@ export async function readBridgeHealth(fetchImpl = fetch, bridgeUrl = "http://12
     }
 }
 
-export async fuction readOtpHealth(fetchImpl = fetch, otpUrl = "http://127.0.0.1:8080/otp/") {
-
-const controller = new AbortController();
-const timer = setTimeout(() => controller.abort(), 5_000);
-
-try {
-    const response = await fetchImpl(otpUrl, {
-	signal: controller.signal
-    });
-
-    return {
-	alive: response.ok,
-	status: response.status
-    };
-} catch {
-    return {
-	alive: false,
-	status: null
-    };
-} finally {
-    clearTimeout(timer);
-}
-}
-
 function baseComponent(id, alive, reason, now) {
     return {
         id, alive, progress: alive ? "active" : "unknown", retrying: false,
@@ -135,7 +112,7 @@ function baseComponent(id, alive, reason, now) {
     };
 }
 
-export function buildHealthReport({collector, forwarder, bridge, processes, otp, now = new Date(), problemStarts = new Map()}) {
+export function buildHealthReport({collector, forwarder, bridge, otp, processes, now = new Date(), problemStarts = new Map()}) {
     const observedAt = now.toISOString();
     function reportTimestamp(value) {
         const normalized = isoOrNull(value);
@@ -220,23 +197,6 @@ export function buildHealthReport({collector, forwarder, bridge, processes, otp,
             process_running: processes.forwarder}
     };
 
-const otpAlive = otp?.alive === true;
-
-const otpComponent = {
-    ...baseComponent(
-	"opentripplanner",
-	otpAlive,
-	otpAlive ? null : "opentripplanner-unavailable",
-	observedAt
-    ),
-    problem_started_at: problemStart(
-	"opentripplanner",
-	otpAlive ? null : "opentripplanner-unavailable"
-    ),
-    metrics: {
-	http_status: otp?.status ?? null
-    }
-};
     return {
         schema_version: 2,
         observed_at: observedAt,
@@ -245,26 +205,52 @@ const otpComponent = {
                 processes.vpn ? null : "vpn-unavailable", observedAt),
                 problem_started_at: problemStart("yoga-connectivity", processes.vpn ? null : "vpn-unavailable"),
                 metrics: {vpn_connected: processes.vpn}},
+            otp ?? makeOtpNotConfiguredComponent(now),
             collectorComponent,
             bridgeComponent,
-            forwarderComponent,
-	    otpComponent
+            forwarderComponent
         ]
     };
+}
+
+export async function readOtpHealth(otpMonitor, now = new Date()) {
+    try {
+        return await otpMonitor.sample(now);
+    } catch {
+        const timestamp = now.toISOString();
+        return {
+            id: "opentripplanner", alive: false, progress: "retrying", retrying: true,
+            reason_code: "otp-invalid-response", problem_started_at: timestamp,
+            last_success_at: null, last_progress_at: null, retry_count: 1,
+            last_failure: {at: timestamp, code: "otp-invalid-response", http_status: null},
+            metrics: {
+                otp_response_time_ms: 0, otp_last_success_age_seconds: 0,
+                otp_check_age_seconds: 0, otp_consecutive_failures: 1,
+                otp_route_valid: false
+            }
+        };
+    }
 }
 
 export async function reportOnce(options = {}) {
     const fileSystem = options.fileSystem ?? fs;
     const fetchImpl = options.fetchImpl ?? fetch;
+    const now = options.now ?? new Date();
+    const otpMonitor = options.otpMonitor ?? createOtpHealthMonitor({
+        env: options.env ?? process.env,
+        fetchImpl: options.otpFetchImpl ?? fetch,
+        fileSystem,
+        statePath: options.otpStatePath
+    });
     const [collector, forwarder, bridge, processes, otp] = await Promise.all([
         readBoundedJson(options.collectorHealthPath ?? COLLECTOR_HEALTH_PATH, fileSystem),
         readBoundedJson(options.forwarderHealthPath ?? FORWARDER_HEALTH_PATH, fileSystem),
         readBridgeHealth(fetchImpl, options.bridgeUrl),
         (options.inspectProcesses ?? inspectProcesses)(),
-	readOtpHealth(fetchImpl, options.otpUrl)
+        readOtpHealth(otpMonitor, now)
     ]);
-    const report = buildHealthReport({collector, forwarder, bridge, processes, otp,
-        now: options.now ?? new Date(), problemStarts: options.problemStarts});
+    const report = buildHealthReport({collector, forwarder, bridge, otp, processes,
+        now, problemStarts: options.problemStarts});
     if (!processes.vpn) return {sent: false, report};
     const response = await fetchImpl(`${options.cloudflareUrl}/collector/heartbeat`, {
         method: "POST",
@@ -279,9 +265,15 @@ export async function run(options = {}) {
     const logger = options.logger ?? console;
     const sleep = options.sleep ?? (milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds)));
     const problemStarts = options.problemStarts ?? new Map();
+    const otpMonitor = options.otpMonitor ?? createOtpHealthMonitor({
+        env: options.env ?? process.env,
+        fetchImpl: options.otpFetchImpl ?? fetch,
+        fileSystem: options.fileSystem ?? fs,
+        statePath: options.otpStatePath
+    });
     while (true) {
         try {
-            await reportOnce({...options, problemStarts});
+            await reportOnce({...options, problemStarts, otpMonitor});
         } catch (error) {
             logger.error(new Date().toISOString(), "Health report failed:",
                 error instanceof Error ? error.message : String(error));
