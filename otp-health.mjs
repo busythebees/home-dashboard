@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 export const OTP_GRAPHQL_URL = "http://127.0.0.1:8080/otp/gtfs/v1";
-export const OTP_PROBE_TIMEOUT_MS = 5_000;
+export const OTP_PROBE_TIMEOUT_MS = 30_000;
 export const OTP_HEALTHY_INTERVAL_MS = 5 * 60_000;
 export const OTP_STALE_MS = 10 * 60_000;
 export const OTP_FAILURE_DELAYS_MS = [30_000, 60_000, 120_000, 300_000];
@@ -168,6 +168,7 @@ export async function probeOtp(config, options = {}) {
         let value;
         try {
             value = await response.json();
+	    console.log("OTP RAW RESPONSE:", JSON.stringify(value, null, 2));
         } catch {
             return {ok: false, reason: "otp-invalid-response", httpStatus: response.status,
                 responseTimeMs};
