@@ -2926,7 +2926,9 @@ function renderPendingGmailTasks(message = "") {
                 </div>
                 <h3>${escapeHtml(task.title || "Untitled task")}</h3>
                 ${task.description ? `
-                    <p class="pending-task-description">${escapeHtml(task.description)}</p>
+                    <p class="pending-task-description">${escapeHtml(
+                        (task.description || "").trim()
+                    )}</p>
                 ` : ""}
                 ${due ? `
                     <p class="pending-task-due">
