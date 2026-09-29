@@ -1040,6 +1040,24 @@ button {
     flex-shrink: 0;
 }
 
+.event-source-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    font-size: 1.55rem;
+    font-weight: 700;
+}
+
+.psychology-event-badge {
+    border: 1px solid rgba(166, 116, 255, 0.45);
+    background: rgba(118, 71, 204, 0.2);
+    color: #d8c2ff;
+}
+
 .discord-message-source {
     min-width: 0;
 }

@@ -80,12 +80,12 @@ let systemHealth = null;
 let systemHealthApiAvailable = true;
 let discordMessages = [];
 
-// Canonical Discord extraction.
-// Loaded alongside the legacy event pipeline
-// during migration.
-let discordItems = [];
-let rejectedDiscordItems = [];
-let acceptedDiscordItems = [];
+// Unified human-review collection. Discord canonical
+// events and Psychology email candidates share one
+// presentation and decision flow.
+let eventReviewItems = [];
+let rejectedEventReviewItems = [];
+let acceptedEventReviewItems = [];
 
 let rejectedDiscordSort =
     "rejected";
@@ -139,6 +139,23 @@ const DISCORD_CHANNELS = {
         logo: "images/societies/rocksoc.png"
     }
 };
+
+function eventSourcePresentation(event) {
+    if (event.source_kind === "psychology_email") {
+        return {
+            society: event.source_label || "Psychology email",
+            logo: "",
+            badge: "Ψ"
+        };
+    }
+
+    const source = DISCORD_CHANNELS[event.channel_id];
+    return {
+        society: source?.society || "Discord",
+        logo: source?.logo || "",
+        badge: ""
+    };
+}
 
 
 function parseD1UtcTimestamp(value) {
@@ -312,7 +329,7 @@ function formatDiscordMessageTime(
 // DISCORD EVENT CANDIDATES
 // =========================
 
-async function fetchDiscordItems() {
+async function fetchEventReviewItems() {
 
     if (!session) {
         return [];
@@ -320,7 +337,7 @@ async function fetchDiscordItems() {
 
     const response =
         await fetch(
-            API + "/discord-items?_=" +
+            API + "/event-review-items?_=" +
                 Date.now(),
             {
                 cache: "no-store",
@@ -334,7 +351,7 @@ async function fetchDiscordItems() {
 
     if (!response.ok) {
         throw new Error(
-            "Discord items load failed: " +
+            "Event review items load failed: " +
             response.status
         );
     }
@@ -344,59 +361,6 @@ async function fetchDiscordItems() {
 
     return data.items || [];
 }
-
-async function fetchDiscordItemsByStatus(
-    status
-) {
-
-    if (!session) {
-        return [];
-    }
-
-    const response =
-        await fetch(
-            API +
-                "/discord-items?status=" +
-                encodeURIComponent(status) +
-                "&_=" +
-                Date.now(),
-            {
-                cache: "no-store",
-
-                headers: {
-                    Authorization:
-                        "Bearer " + session
-                }
-            }
-        );
-
-    if (!response.ok) {
-        throw new Error(
-            "Discord items load failed: " +
-            response.status
-        );
-    }
-
-    const data =
-        await response.json();
-
-    return data.items || [];
-}
-
-
-function fetchRejectedDiscordItems() {
-    return fetchDiscordItemsByStatus(
-        "rejected"
-    );
-}
-
-
-function fetchAcceptedDiscordItems() {
-    return fetchDiscordItemsByStatus(
-        "accepted"
-    );
-}
-
 
 function deriveDiscordItemCollections(items) {
 
@@ -425,7 +389,7 @@ function deriveDiscordItemCollections(items) {
 
 function getCanonicalAcceptedDiscordEvents() {
 
-    return acceptedDiscordItems.filter(
+    return acceptedEventReviewItems.filter(
         item =>
             item.item_type === "event" &&
             item.status === "accepted"
@@ -434,7 +398,7 @@ function getCanonicalAcceptedDiscordEvents() {
 
 function getCanonicalDiscordEvents() {
 
-    return discordItems.filter(
+    return eventReviewItems.filter(
         item =>
             item.item_type === "event" &&
             (
@@ -446,7 +410,7 @@ function getCanonicalDiscordEvents() {
 
 function getCanonicalRejectedDiscordEvents() {
 
-    return rejectedDiscordItems.filter(
+    return rejectedEventReviewItems.filter(
         item =>
             item.item_type === "event" &&
             item.status === "rejected"
@@ -1216,17 +1180,8 @@ function renderAcceptedDiscordEvents() {
         events
             .map(event => {
 
-                const source =
-                    DISCORD_CHANNELS[
-                        event.channel_id
-                    ];
-
-                const society =
-                    source?.society ||
-                    "Discord";
-
-                const logo =
-                    source?.logo || "";
+                const { society, logo, badge } =
+                    eventSourcePresentation(event);
 
                 const sourceMessages =
                     formatDiscordSourceMessages(
@@ -1245,7 +1200,14 @@ function renderAcceptedDiscordEvents() {
                         <div class="discord-event-header">
 
                             ${
-                                logo
+                                badge
+                                    ? `
+                                        <div
+                                            class="event-source-badge psychology-event-badge"
+                                            aria-hidden="true"
+                                        >${escapeHtml(badge)}</div>
+                                    `
+                                    : logo
                                     ? `
                                         <img
                                             class="discord-society-logo"
@@ -1349,7 +1311,7 @@ function renderAcceptedDiscordEvents() {
                             type="button"
                             class="discord-event-reject"
                             data-no-longer-going
-                            data-item-id="${event.id}"
+                            data-review-key="${escapeHtml(event.review_key)}"
                         >
                             I no longer want to go
                         </button>
@@ -1398,17 +1360,8 @@ function renderDiscordEvents() {
         canonicalEvents
             .map(event => {
 
-                const source =
-                    DISCORD_CHANNELS[
-                        event.channel_id
-                    ];
-
-                const society =
-                    source?.society ||
-                    "Discord";
-
-                const logo =
-                    source?.logo || "";
+                const { society, logo, badge } =
+                    eventSourcePresentation(event);
 
                 const needsReview =
                     event.status ===
@@ -1435,7 +1388,14 @@ function renderDiscordEvents() {
                         <div class="discord-event-header">
 
                             ${
-                                logo
+                                badge
+                                    ? `
+                                        <div
+                                            class="event-source-badge psychology-event-badge"
+                                            aria-hidden="true"
+                                        >${escapeHtml(badge)}</div>
+                                    `
+                                    : logo
                                     ? `
                                         <img
                                             class="discord-society-logo"
@@ -1505,15 +1465,17 @@ function renderDiscordEvents() {
                                     `
                             }
 
-                            <div>
-                                ${
-                                    event.drinking_status === "drinking"
-                                        ? "Drinking"
-                                        : event.drinking_status === "non_drinking"
-                                            ? "Non-drinking"
-                                            : "Drinking status unclear"
-                                }
-                            </div>
+                            ${event.source_kind === "discord" ? `
+                                <div>
+                                    ${
+                                        event.drinking_status === "drinking"
+                                            ? "Drinking"
+                                            : event.drinking_status === "non_drinking"
+                                                ? "Non-drinking"
+                                                : "Drinking status unclear"
+                                    }
+                                </div>
+                            ` : ""}
 
                             ${
                                 event.meeting_point
@@ -1559,6 +1521,7 @@ function renderDiscordEvents() {
 
                         ${sourceMessages.content}
 
+                        ${event.can_edit !== false ? `
                         <button
                             type="button"
                             class="discord-event-edit"
@@ -1763,6 +1726,7 @@ function renderDiscordEvents() {
                                 </button>
                             </div>
                         </form>
+                        ` : ""}
 
                         <div class="discord-event-actions">
 
@@ -1770,7 +1734,7 @@ function renderDiscordEvents() {
                                 type="button"
                                 class="discord-event-reject"
                                 data-discord-event-decision="rejected"
-                                data-item-id="${event.id}"
+                                data-review-key="${escapeHtml(event.review_key)}"
                                 aria-label="Not interested"
                                 title="Not interested"
                             >
@@ -1781,7 +1745,7 @@ function renderDiscordEvents() {
                                 type="button"
                                 class="discord-event-accept"
                                 data-discord-event-decision="accepted"
-                                data-item-id="${event.id}"
+                                data-review-key="${escapeHtml(event.review_key)}"
                                 aria-label="I would like to go"
                                 title="I would like to go"
                             >
@@ -1870,17 +1834,8 @@ function renderRejectedDiscordEvents() {
         sortedEvents
             .map(event => {
 
-                const source =
-                    DISCORD_CHANNELS[
-                        event.channel_id
-                    ];
-
-                const society =
-                    source?.society ||
-                    "Discord";
-
-                const logo =
-                    source?.logo || "";
+                const { society, logo, badge } =
+                    eventSourcePresentation(event);
 
                 return `
                     <div
@@ -1894,7 +1849,14 @@ function renderRejectedDiscordEvents() {
                         <div class="discord-event-header">
 
                             ${
-                                logo
+                                badge
+                                    ? `
+                                        <div
+                                            class="event-source-badge psychology-event-badge"
+                                            aria-hidden="true"
+                                        >${escapeHtml(badge)}</div>
+                                    `
+                                    : logo
                                     ? `
                                         <img
                                             class="discord-society-logo"
@@ -1965,7 +1927,7 @@ function renderRejectedDiscordEvents() {
                         <button
                             type="button"
                             class="discord-event-restore"
-                            data-restore-discord-item="${event.id}"
+                            data-restore-event-review="${escapeHtml(event.review_key)}"
                         >
                             Restore
                         </button>
@@ -1976,14 +1938,14 @@ function renderRejectedDiscordEvents() {
             .join("");
 }
 
-async function decideDiscordItem(
-    itemId,
+async function decideEventReviewItem(
+    reviewKey,
     status
 ) {
     const response =
         await fetch(
             API +
-            "/discord-items/decision",
+            "/event-review-items/decision",
             {
                 method: "PUT",
 
@@ -1998,7 +1960,7 @@ async function decideDiscordItem(
 
                 body:
                     JSON.stringify({
-                        itemId,
+                        reviewKey,
                         status
                     })
             }
@@ -2006,19 +1968,30 @@ async function decideDiscordItem(
 
     if (!response.ok) {
         throw new Error(
-            "Discord item decision failed: " +
+            "Event decision failed: " +
             response.status
         );
     }
 
-    discordItems =
-        await fetchDiscordItems();
+    const items =
+        await fetchEventReviewItems();
 
-    rejectedDiscordItems =
-        await fetchRejectedDiscordItems();
+    const collections =
+        deriveDiscordItemCollections(items);
+
+    eventReviewItems =
+        collections.allItems;
+
+    rejectedEventReviewItems =
+        collections.rejectedItems;
+
+    acceptedEventReviewItems =
+        collections.acceptedItems;
 
     renderDiscordEvents();
     renderRejectedDiscordEvents();
+    renderAcceptedDiscordEvents();
+    renderLiveTravel();
 }
 
 async function saveDiscordItemDetails(
@@ -2088,10 +2061,23 @@ async function saveDiscordItemDetails(
         );
     }
 
-    discordItems =
-        await fetchDiscordItems();
+    const items =
+        await fetchEventReviewItems();
+
+    const collections =
+        deriveDiscordItemCollections(items);
+
+    eventReviewItems =
+        collections.allItems;
+
+    rejectedEventReviewItems =
+        collections.rejectedItems;
+
+    acceptedEventReviewItems =
+        collections.acceptedItems;
 
     renderDiscordEvents();
+    renderRejectedDiscordEvents();
 }
 
 document
@@ -2112,10 +2098,8 @@ document
             }
 
 
-            const itemId =
-                Number(
-                    button.dataset.itemId
-                );
+            const reviewKey =
+                button.dataset.reviewKey;
 
             const status =
                 button.dataset
@@ -2137,8 +2121,8 @@ document
 
             try {
 
-                await decideDiscordItem(
-                    itemId,
+                await decideEventReviewItem(
+                    reviewKey,
                     status
                 );
 
@@ -2366,7 +2350,7 @@ document
 
             const button =
                 event.target.closest(
-                    "[data-restore-discord-item]"
+                    "[data-restore-event-review]"
                 );
 
             if (!button) {
@@ -2374,11 +2358,9 @@ document
             }
 
 
-            const itemId =
-                Number(
-                    button.dataset
-                        .restoreDiscordItem
-                );
+            const reviewKey =
+                button.dataset
+                    .restoreEventReview;
 
 
             button.disabled = true;
@@ -2386,8 +2368,8 @@ document
 
             try {
 
-                await decideDiscordItem(
-                    itemId,
+                await decideEventReviewItem(
+                    reviewKey,
                     "candidate"
                 );
 
@@ -2499,27 +2481,27 @@ async function refreshCollector() {
         const data =
             await fetchCollectorStatus();
 
-        const fetchedDiscordItems =
-            await fetchDiscordItems();
+        const fetchedEventReviewItems =
+            await fetchEventReviewItems();
 
         const collections =
             deriveDiscordItemCollections(
-                fetchedDiscordItems
+                fetchedEventReviewItems
             );
 
         /*
         * Commit all three collections together. If the
-        * single canonical-items request fails, the catch
+        * single unified event-review request fails, the catch
         * path retains the previous internally consistent
         * snapshot rather than mixing new and stale subsets.
         */
-        discordItems =
+        eventReviewItems =
             collections.allItems;
 
-        rejectedDiscordItems =
+        rejectedEventReviewItems =
             collections.rejectedItems;
 
-        acceptedDiscordItems =
+        acceptedEventReviewItems =
             collections.acceptedItems;
 
         if (!data) {
@@ -6263,8 +6245,20 @@ if (
                 true;
 
             try {
-                acceptedDiscordItems =
-                    await fetchAcceptedDiscordItems();
+                const items =
+                    await fetchEventReviewItems();
+
+                const collections =
+                    deriveDiscordItemCollections(items);
+
+                eventReviewItems =
+                    collections.allItems;
+
+                rejectedEventReviewItems =
+                    collections.rejectedItems;
+
+                acceptedEventReviewItems =
+                    collections.acceptedItems;
 
                 renderAcceptedDiscordEvents();
 
@@ -6339,14 +6333,11 @@ document
                 return;
             }
 
-            const itemId =
-                Number(
-                    button.dataset.itemId
-                );
+            const reviewKey =
+                button.dataset.reviewKey;
 
             if (
-                !Number.isInteger(itemId) ||
-                itemId <= 0
+                !reviewKey
             ) {
                 return;
             }
@@ -6355,15 +6346,10 @@ document
 
             try {
 
-                await decideDiscordItem(
-                    itemId,
+                await decideEventReviewItem(
+                    reviewKey,
                     "rejected"
                 );
-
-                acceptedDiscordItems =
-                    await fetchAcceptedDiscordItems();
-
-                renderAcceptedDiscordEvents();
 
             } catch (error) {
 
