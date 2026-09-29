@@ -4345,6 +4345,64 @@ function getTaskStatus(task) {
 // TASK CARD
 // =========================
 
+function safeEmailTaskSourceUrls(task) {
+    if (
+        task?.provenance?.type !==
+            "gmail_interpretation" ||
+        !Array.isArray(task.sourceUrls)
+    ) {
+        return [];
+    }
+
+    const urls = [];
+    const seen = new Set();
+
+    for (const value of task.sourceUrls) {
+        if (typeof value !== "string") continue;
+
+        try {
+            const url = new URL(value);
+            if (url.protocol !== "http:" && url.protocol !== "https:") continue;
+            const normalized = url.href;
+            if (seen.has(normalized)) continue;
+            seen.add(normalized);
+            urls.push(normalized);
+        } catch {
+            // Invalid source links remain unavailable rather than becoming executable markup.
+        }
+    }
+
+    return urls;
+}
+
+function renderEmailTaskSourceLinks(task) {
+    const urls = safeEmailTaskSourceUrls(task);
+
+    if (urls.length === 0) return "";
+
+    const link = (url, label) => `
+        <a
+            class="task-source-link"
+            href="${escapeHtmlAttribute(url)}"
+            target="_blank"
+            rel="noopener noreferrer"
+        >${escapeHtml(label)}</a>
+    `;
+
+    if (urls.length === 1) {
+        return `<div class="task-source-links">${link(urls[0], "Link")}</div>`;
+    }
+
+    return `
+        <details class="task-source-links task-source-links-multiple">
+            <summary>Links</summary>
+            <div class="task-source-link-list">
+                ${urls.map((url, index) => link(url, `Link ${index + 1}`)).join("")}
+            </div>
+        </details>
+    `;
+}
+
 function taskCard(
     task,
     dormant
@@ -4456,6 +4514,8 @@ function taskCard(
                     ${recurrence}
                     ${home}
                 </div>
+
+                ${renderEmailTaskSourceLinks(task)}
 
                 ${
                     machineBusy
@@ -4822,6 +4882,15 @@ function escapeHtml(value) {
         value ?? "";
 
     return element.innerHTML;
+}
+
+function escapeHtmlAttribute(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
 }
 
 // =========================

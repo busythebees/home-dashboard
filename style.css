@@ -118,6 +118,32 @@ button {
     font-size: 0.85rem;
 }
 
+.task-source-links {
+    margin-top: 0.55rem;
+    width: fit-content;
+}
+
+.task-source-link,
+.task-source-links > summary {
+    color: #d8c2ff;
+    font-size: 0.86rem;
+    font-weight: 650;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.task-source-link:hover,
+.task-source-links > summary:hover {
+    text-decoration: underline;
+}
+
+.task-source-link-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 0.4rem;
+}
+
 .dormant-section {
     margin-top: 20px;
 }

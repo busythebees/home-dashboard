@@ -1,4 +1,4 @@
-const CACHE_NAME = "home-dashboard-v19";
+const CACHE_NAME = "home-dashboard-v20";
 
 const FILES = [
     "./",
