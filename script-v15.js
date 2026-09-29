@@ -2845,9 +2845,13 @@ async function fetchPendingGmailTasks() {
     }
 
     const data = await response.json();
-    return Array.isArray(data.tasks)
-        ? data.tasks
-        : [];
+    const tasks = Array.isArray(data.tasks) ? data.tasks.map(task => ({
+        ...task, reviewKind: "task"
+    })) : [];
+    const studyPlans = Array.isArray(data.studyPlans) ? data.studyPlans.map(plan => ({
+        ...plan, reviewKind: "study_plan"
+    })) : [];
+    return [...tasks, ...studyPlans];
 }
 
 
@@ -2873,6 +2877,64 @@ function pendingGmailTaskDueText(task) {
         : formatted;
 }
 
+function gmailLinkPathLabel(url) {
+    const path = `${url.pathname} ${url.search}`.toLowerCase();
+    if (/student[-_/ ]?training|training/.test(path)) return "Student Training";
+    if (/assignment|submission|submit/.test(path)) return "Assignment Submission";
+    if (/workshop.*reg|reg.*workshop/.test(path)) return "Workshop Registration";
+    if (/registration|register|booking/.test(path)) return "Registration";
+    if (/(?:^|[/_-])form(?:[/_.-]|$)/.test(url.pathname.toLowerCase())) return "Form";
+    return "";
+}
+
+function contextualGmailLinks(urlsValue, labelsValue) {
+    const labelMap = new Map();
+    if (Array.isArray(labelsValue)) {
+        for (const link of labelsValue) {
+            if (link && typeof link.url === "string" && typeof link.label === "string" &&
+                link.label.trim() && link.label.trim().length <= 80) {
+                try {
+                    const normalized = new URL(link.url);
+                    if (["http:", "https:"].includes(normalized.protocol) &&
+                        !labelMap.has(normalized.href)) {
+                        labelMap.set(normalized.href, link.label.trim());
+                    }
+                } catch {
+                    // Invalid labelled links cannot label a rendered URL.
+                }
+            }
+        }
+    }
+    const links = [];
+    const seen = new Set();
+    for (const value of Array.isArray(urlsValue) ? urlsValue : []) {
+        if (typeof value !== "string" || seen.has(value)) continue;
+        try {
+            const url = new URL(value);
+            if (url.protocol !== "http:" && url.protocol !== "https:") continue;
+            seen.add(value);
+            links.push({url: url.href, label: labelMap.get(url.href) || gmailLinkPathLabel(url) ||
+                url.hostname.replace(/^www\./i, "") || "Link"});
+        } catch {
+            // Invalid links are omitted rather than rendered.
+        }
+    }
+    const counts = new Map();
+    for (const link of links) counts.set(link.label, (counts.get(link.label) || 0) + 1);
+    const positions = new Map();
+    return links.map(link => {
+        if (counts.get(link.label) === 1) return link;
+        const position = (positions.get(link.label) || 0) + 1;
+        positions.set(link.label, position);
+        return {...link, label: `${link.label} ${position}`};
+    });
+}
+
+function pendingStudyWorkType(value) {
+    return String(value || "study").replaceAll("_", " ").replace(/\b\w/g,
+        letter => letter.toUpperCase());
+}
+
 
 function renderPendingGmailTasks(message = "") {
     const section = document.getElementById(
@@ -2894,12 +2956,43 @@ function renderPendingGmailTasks(message = "") {
 
     list.innerHTML = pendingGmailTasks.map(task => {
         const due = pendingGmailTaskDueText(task);
-        const links = Array.isArray(task.urls)
-            ? task.urls.filter(url =>
-                typeof url === "string" &&
-                /^https?:\/\//i.test(url)
-            )
-            : [];
+        const links = contextualGmailLinks(task.urls, task.links);
+        if (task.reviewKind === "study_plan") {
+            const subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+            const action = task.updatedPlan ? "replace" : "accept";
+            return `
+                <article class="card pending-task-card pending-study-plan-card">
+                    <div class="pending-task-source">${escapeHtml(task.sourceLabel || "Psychology email")}</div>
+                    <div class="pending-study-plan-kind">Study Plan${task.updatedPlan ? " · Updated plan available" : ""}</div>
+                    <h3>${escapeHtml(task.title || "Untitled study plan")}</h3>
+                    <p class="pending-study-plan-meta">
+                        <strong>Type:</strong> ${escapeHtml(pendingStudyWorkType(task.workType))}
+                        ${due ? ` · <strong>Due:</strong> ${escapeHtml(due)}` : ""}
+                    </p>
+                    <p><strong>Planning basis:</strong> ${escapeHtml(
+                        String(task.planningBasis || "insufficient information").replaceAll("_", " ")
+                    )}</p>
+                    ${task.description ? `<p class="pending-task-description">${escapeHtml(task.description.trim())}</p>` : ""}
+                    ${subtasks.length ? `<ol class="pending-study-subtasks">${subtasks.map(subtask => `
+                        <li><strong>${escapeHtml(subtask.title)}</strong>
+                            <span>${escapeHtml(subtask.targetDate || "No safe target date")} · ${
+                                subtask.estimatedMinutes ? escapeHtml(`${subtask.estimatedMinutes} min`) : "No safe duration"
+                            }</span></li>`).join("")}</ol>` : ""}
+                    ${links.length ? `<div class="pending-task-links">${links.map(link => `
+                        <a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)}</a>
+                    `).join("")}</div>` : ""}
+                    ${!task.canAccept ? `<p class="pending-study-warning">Insufficient information to generate a reliable schedulable plan. No tasks will be created.</p>` : ""}
+                    ${task.updatedPlan && task.canAccept ? `<p class="pending-study-warning">Updating will preserve completed tasks, keep equivalent tasks once, and replace only uncompleted tasks from the previous plan.</p>` : ""}
+                    <div class="pending-task-actions">
+                        ${task.canAccept ? `<button type="button" data-pending-task-action="${action}"
+                            data-review-kind="study_plan" data-candidate-id="${escapeHtml(String(task.candidateId))}">${
+                                task.updatedPlan ? "Replace / Update" : "Accept plan"
+                            }</button>` : ""}
+                        <button type="button" class="secondary" data-pending-task-action="decline"
+                            data-review-kind="study_plan" data-candidate-id="${escapeHtml(String(task.candidateId))}">Decline</button>
+                    </div>
+                </article>`;
+        }
 
         return `
             <article class="card pending-task-card">
@@ -2919,12 +3012,12 @@ function renderPendingGmailTasks(message = "") {
                 ` : ""}
                 ${links.length ? `
                     <div class="pending-task-links">
-                        ${links.map((url, index) => `
+                        ${links.map(link => `
                             <a
-                                href="${escapeHtml(url)}"
+                                href="${escapeHtml(link.url)}"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                            >Link ${index + 1}</a>
+                            >${escapeHtml(link.label)}</a>
                         `).join("")}
                     </div>
                 ` : ""}
@@ -2948,8 +3041,12 @@ function renderPendingGmailTasks(message = "") {
 
 
 async function decidePendingGmailTask(candidateId, action) {
+    const review = pendingGmailTasks.find(item =>
+        String(item.candidateId) === String(candidateId));
+    const basePath = review?.reviewKind === "study_plan" ?
+        "/gmail/study-plans/" : "/gmail/tasks/";
     const response = await fetch(
-        `${API}/gmail/tasks/${encodeURIComponent(candidateId)}/${action}`,
+        `${API}${basePath}${encodeURIComponent(candidateId)}/${action}`,
         {
             method: "POST",
             headers: {
@@ -3008,8 +3105,17 @@ if (pendingTaskList) {
                 button.dataset.pendingTaskAction;
             if (!candidateId || ![
                 "accept",
+                "replace",
                 "decline"
             ].includes(action)) {
+                return;
+            }
+
+            if (action === "replace" && !window.confirm(
+                "Update this study plan? Completed tasks will be preserved. " +
+                "Equivalent tasks will be kept once, and other uncompleted tasks " +
+                "from the previous plan will be replaced."
+            )) {
                 return;
             }
 
@@ -3035,11 +3141,14 @@ if (pendingTaskList) {
                     );
                 renderPendingGmailTasks(
                     action === "accept"
-                        ? "Task accepted."
+                        ? (card?.classList.contains("pending-study-plan-card") ?
+                            "Study plan accepted." : "Task accepted.")
+                        : action === "replace"
+                            ? "Study plan updated."
                         : "Task declined."
                 );
 
-                if (action === "accept") {
+                if (action === "accept" || action === "replace") {
                     try {
                         tasks = await fetchTasks();
                         renderTasks();
@@ -4347,8 +4456,9 @@ function getTaskStatus(task) {
 
 function safeEmailTaskSourceUrls(task) {
     if (
-        task?.provenance?.type !==
-            "gmail_interpretation" ||
+        !["gmail_interpretation", "gmail_study_plan"].includes(
+            task?.provenance?.type
+        ) ||
         !Array.isArray(task.sourceUrls)
     ) {
         return [];
@@ -4377,8 +4487,9 @@ function safeEmailTaskSourceUrls(task) {
 
 function renderEmailTaskSourceLinks(task) {
     const urls = safeEmailTaskSourceUrls(task);
+    const links = contextualGmailLinks(urls, task?.sourceLinks);
 
-    if (urls.length === 0) return "";
+    if (links.length === 0) return "";
 
     const link = (url, label) => `
         <a
@@ -4389,15 +4500,15 @@ function renderEmailTaskSourceLinks(task) {
         >${escapeHtml(label)}</a>
     `;
 
-    if (urls.length === 1) {
-        return `<div class="task-source-links">${link(urls[0], "Link")}</div>`;
+    if (links.length === 1) {
+        return `<div class="task-source-links">${link(links[0].url, links[0].label)}</div>`;
     }
 
     return `
         <details class="task-source-links task-source-links-multiple">
             <summary>Links</summary>
             <div class="task-source-link-list">
-                ${urls.map((url, index) => link(url, `Link ${index + 1}`)).join("")}
+                ${links.map(item => link(item.url, item.label)).join("")}
             </div>
         </details>
     `;

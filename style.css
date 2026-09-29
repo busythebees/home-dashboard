@@ -1792,6 +1792,36 @@ button:disabled {
     display: none;
 }
 
+.pending-study-plan-kind {
+    color: var(--accent, #7557b8);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.pending-study-plan-meta {
+    margin: 0.4rem 0;
+}
+
+.pending-study-subtasks {
+    display: grid;
+    gap: 0.55rem;
+    padding-left: 1.35rem;
+}
+
+.pending-study-subtasks li span {
+    display: block;
+    color: var(--muted-text, #62616a);
+    font-size: 0.88rem;
+    margin-top: 0.12rem;
+}
+
+.pending-study-warning {
+    border-left: 3px solid #b17600;
+    padding-left: 0.7rem;
+}
+
 .pending-task-card h3 {
     margin-top: 0.35rem;
 }
