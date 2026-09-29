@@ -1744,3 +1744,35 @@ button:disabled {
 .discord-original-announcement-messages[hidden] {
     display: none;
 }
+.pending-tasks-status:empty {
+    display: none;
+}
+
+.pending-task-card h3 {
+    margin-top: 0.35rem;
+}
+
+.pending-task-source {
+    color: var(--muted, #666);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.pending-task-description {
+    white-space: pre-wrap;
+}
+
+.pending-task-due {
+    margin-bottom: 0.65rem;
+}
+
+.pending-task-links,
+.pending-task-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.pending-task-links {
+    margin-bottom: 0.9rem;
+}

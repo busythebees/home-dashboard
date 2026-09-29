@@ -58,6 +58,7 @@ if (location.hash.startsWith("#session=")) {
 // =========================
 
 let tasks = [];
+let pendingGmailTasks = [];
 let editingTaskId = null;
 let laundryMachineState = {
     status: "available",
@@ -2832,6 +2833,255 @@ async function initialiseTasks() {
         console.error(error);
         renderTasks();
     }
+}
+
+
+// =========================
+// PENDING GMAIL TASKS
+// =========================
+
+async function fetchPendingGmailTasks() {
+    if (!session) {
+        return [];
+    }
+
+    const response = await fetch(
+        API + "/gmail/tasks/pending",
+        {
+            cache: "no-store",
+            headers: {
+                Authorization:
+                    "Bearer " + session
+            }
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            `Pending task load failed: ${response.status}`
+        );
+    }
+
+    const data = await response.json();
+    return Array.isArray(data.tasks)
+        ? data.tasks
+        : [];
+}
+
+
+function pendingGmailTaskDueText(task) {
+    if (!task.dueDate) {
+        return "";
+    }
+
+    const date = new Date(
+        task.dueDate + "T12:00:00"
+    );
+    const formatted = Number.isNaN(date.getTime())
+        ? task.dueDate
+        : date.toLocaleDateString([], {
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+            year: "numeric"
+        });
+
+    return task.dueTime
+        ? `${formatted} at ${task.dueTime}`
+        : formatted;
+}
+
+
+function renderPendingGmailTasks(message = "") {
+    const section = document.getElementById(
+        "pending-tasks-section"
+    );
+    const list = document.getElementById(
+        "pending-task-list"
+    );
+    const status = document.getElementById(
+        "pending-tasks-status"
+    );
+
+    if (!section || !list || !status) {
+        return;
+    }
+
+    status.textContent = message;
+    section.hidden = pendingGmailTasks.length === 0 && !message;
+
+    list.innerHTML = pendingGmailTasks.map(task => {
+        const due = pendingGmailTaskDueText(task);
+        const links = Array.isArray(task.urls)
+            ? task.urls.filter(url =>
+                typeof url === "string" &&
+                /^https?:\/\//i.test(url)
+            )
+            : [];
+
+        return `
+            <article class="card pending-task-card">
+                <div class="pending-task-source">
+                    ${escapeHtml(task.sourceLabel || "Psychology email")}
+                </div>
+                <h3>${escapeHtml(task.title || "Untitled task")}</h3>
+                ${task.description ? `
+                    <p class="pending-task-description">
+                        ${escapeHtml(task.description)}
+                    </p>
+                ` : ""}
+                ${due ? `
+                    <p class="pending-task-due">
+                        <strong>Due:</strong> ${escapeHtml(due)}
+                    </p>
+                ` : ""}
+                ${links.length ? `
+                    <div class="pending-task-links">
+                        ${links.map((url, index) => `
+                            <a
+                                href="${escapeHtml(url)}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >Link ${index + 1}</a>
+                        `).join("")}
+                    </div>
+                ` : ""}
+                <div class="pending-task-actions">
+                    <button
+                        type="button"
+                        data-pending-task-action="accept"
+                        data-candidate-id="${escapeHtml(String(task.candidateId))}"
+                    >Accept</button>
+                    <button
+                        type="button"
+                        class="secondary"
+                        data-pending-task-action="decline"
+                        data-candidate-id="${escapeHtml(String(task.candidateId))}"
+                    >Decline</button>
+                </div>
+            </article>
+        `;
+    }).join("");
+}
+
+
+async function decidePendingGmailTask(candidateId, action) {
+    const response = await fetch(
+        `${API}/gmail/tasks/${encodeURIComponent(candidateId)}/${action}`,
+        {
+            method: "POST",
+            headers: {
+                Authorization:
+                    "Bearer " + session
+            }
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            `Pending task ${action} failed: ${response.status}`
+        );
+    }
+
+    return response.json();
+}
+
+
+async function initialisePendingGmailTasks() {
+    try {
+        pendingGmailTasks =
+            await fetchPendingGmailTasks();
+        renderPendingGmailTasks();
+    } catch (error) {
+        console.error(
+            "Pending tasks load failed",
+            error
+        );
+        renderPendingGmailTasks(
+            "Pending tasks could not be loaded. Please try again."
+        );
+    }
+}
+
+
+const pendingTaskList =
+    document.getElementById(
+        "pending-task-list"
+    );
+
+if (pendingTaskList) {
+    pendingTaskList.addEventListener(
+        "click",
+        async event => {
+            const button = event.target.closest(
+                "[data-pending-task-action]"
+            );
+            if (!button || button.disabled) {
+                return;
+            }
+
+            const candidateId =
+                button.dataset.candidateId;
+            const action =
+                button.dataset.pendingTaskAction;
+            if (!candidateId || ![
+                "accept",
+                "decline"
+            ].includes(action)) {
+                return;
+            }
+
+            const card = button.closest(
+                ".pending-task-card"
+            );
+            const buttons = card
+                ? card.querySelectorAll("button")
+                : [button];
+            buttons.forEach(item => {
+                item.disabled = true;
+            });
+
+            try {
+                await decidePendingGmailTask(
+                    candidateId,
+                    action
+                );
+                pendingGmailTasks =
+                    pendingGmailTasks.filter(task =>
+                        String(task.candidateId) !==
+                            String(candidateId)
+                    );
+                renderPendingGmailTasks(
+                    action === "accept"
+                        ? "Task accepted."
+                        : "Task declined."
+                );
+
+                if (action === "accept") {
+                    try {
+                        tasks = await fetchTasks();
+                        renderTasks();
+                    } catch (error) {
+                        console.error(
+                            "Accepted task list refresh failed",
+                            error
+                        );
+                        renderPendingGmailTasks(
+                            "Task accepted, but the task list could not be refreshed."
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error(
+                    "Pending task decision failed",
+                    error
+                );
+                renderPendingGmailTasks(
+                    "That change could not be saved. Please try again."
+                );
+            }
+        }
+    );
 }
 
 
@@ -5954,6 +6204,7 @@ document
 // =========================
 
 initialiseTasks();
+initialisePendingGmailTasks();
 loadCalendar();
 loadSchedulerSettings();
 refreshCollector();
